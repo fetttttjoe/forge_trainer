@@ -1,8 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  // reverse-DNS under atvantage.com; change if you publish under a different domain.
-  appId: 'com.atvantage.forgefit',
+  appId: 'com.train.forgefit',
   appName: 'Forge',
   webDir: 'dist',
 }
