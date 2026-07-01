@@ -21,6 +21,13 @@ export const BUILTIN: Exercise[] = [
   { id: 'campus', name: 'Campus Board Ladders', muscle: 'Forearms', equip: 'Campus board', groups: ['fingers', 'arms'], custom: true, interval: true, defSets: 4, defRest: 180, work: 5, workRest: 5, rounds: 5, icon: '🪜', instructions: 'Explosive ladder moves (1-3-5). Quality over volume — stop the moment power or precision drops.' },
 ]
 
+/** Full bundled exercise catalog (1300+ exercises). Lazy import → code-split into its own chunk,
+ * loaded once during app bootstrap so it never bloats the initial JS. Ships in the app = offline. */
+export async function loadCatalog(): Promise<Exercise[]> {
+  const mod = await import('@/assets/exercises.json')
+  return mod.default
+}
+
 type SeedEntry = { exId: string; interval?: boolean; sets: number; reps: number; rest: number; w?: number }
 
 /** Fresh demo plans (new ids each seed). */

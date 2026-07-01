@@ -1,23 +1,27 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { container } from '@/app/container'
-import { BUILTIN } from '@/infrastructure/dataset'
+import { BUILTIN, loadCatalog } from '@/infrastructure/dataset'
 import { exerciseById, guessGroups } from '@/domain/services/training'
 import { newId } from '@/lib/id'
 import type { Exercise, ExerciseForm } from '@/domain/types'
 
 export const useLibraryStore = defineStore('library', () => {
   const custom = ref<Exercise[]>([])
+  /** The full bundled catalog (loaded once at bootstrap). */
+  const catalog = ref<Exercise[]>([])
 
-  /** Built-ins first, then the user's custom exercises. */
-  const all = computed<Exercise[]>(() => BUILTIN.concat(custom.value))
+  /** Curated built-ins (drive the demo plans), then the full catalog, then the user's own. */
+  const all = computed<Exercise[]>(() => BUILTIN.concat(catalog.value, custom.value))
 
   function exOf(id: string): Exercise {
     return exerciseById(all.value, id)
   }
 
   async function load() {
-    custom.value = await container.exercises.listCustom()
+    const [cat, cust] = await Promise.all([loadCatalog(), container.exercises.listCustom()])
+    catalog.value = cat
+    custom.value = cust
   }
 
   /** Build a custom exercise from the form, persist it, and return it. */

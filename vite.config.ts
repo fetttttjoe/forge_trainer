@@ -7,6 +7,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   // Relative base so the built assets load from the Capacitor native bundle (file://).
   base: './',
+  // The bundled exercise catalog is an intentionally large, code-split data chunk.
+  build: { chunkSizeWarningLimit: 1500 },
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
