@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { container } from '@/app/container'
-import { buildSession } from '@/domain/services/training'
+import { buildSession, sessionRecord } from '@/domain/services/training'
 import {
   IDLE_TIMER,
   addTime as tAddTime,
@@ -24,6 +24,7 @@ interface PendingSession extends WorkoutSession {
   total: number
   done: number
   complete: boolean
+  endedAt: number
 }
 
 export const useWorkoutStore = defineStore('workout', () => {
@@ -52,7 +53,17 @@ export const useWorkoutStore = defineStore('workout', () => {
     session.value = await container.workouts.getActiveSession()
   }
 
-  const persistSession = () => container.workouts.setActiveSession(session.value)
+  const persistSession = () => {
+    if (session.value) session.value.updatedAt = container.clock.now()
+    return container.workouts.setActiveSession(session.value)
+  }
+
+  /** Append a session to history, dated by its start day (see sessionRecord). */
+  async function logSession(s: WorkoutSession, rating: Rating | null, noteText: string, endedAt: number) {
+    const rec = sessionRecord(s, newId(), rating, noteText, endedAt)
+    await container.workouts.addHistory(rec)
+    history.value = [rec, ...history.value]
+  }
 
   // ---- timer engine -------------------------------------------------------
   function stopLoop() {
@@ -123,6 +134,12 @@ export const useWorkoutStore = defineStore('workout', () => {
       useUiStore().toast('Add exercises first')
       return false
     }
+    // Don't silently lose an unfinished workout: log what was done as a partial session.
+    const old = session.value
+    if (old && old.entries.some((e) => e.sets.some((x) => x.done))) {
+      await logSession(old, null, '', old.updatedAt ?? old.startedAt)
+      useUiStore().toast('Unfinished workout saved as partial')
+    }
     resetTimer()
     container.notifier.requestPermission()
     session.value = buildSession(plan, day, (id) => useLibraryStore().exOf(id), history.value, container.clock.now())
@@ -183,7 +200,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     resetTimer()
     const total = s.entries.reduce((a, e) => a + e.sets.length, 0)
     const done = s.entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0)
-    pending.value = { ...s, total, done, complete: total > 0 && done === total }
+    pending.value = { ...s, total, done, complete: total > 0 && done === total, endedAt: container.clock.now() }
     stars.value = 4
     felt.value = 'solid'
     attrs.value = { strength: 3, form: 4, endurance: 3 }
@@ -206,25 +223,7 @@ export const useWorkoutStore = defineStore('workout', () => {
   async function commit(rating: Rating | null) {
     const ps = pending.value
     if (!ps) return
-    const rec: HistorySession = {
-      id: newId(),
-      planName: ps.planName,
-      dayLabel: ps.dayLabel,
-      date: new Date(container.clock.now()).toISOString(),
-      durationMin: Math.max(1, Math.round((container.clock.now() - ps.startedAt) / 60000)),
-      complete: ps.complete,
-      doneSets: ps.done,
-      totalSets: ps.total,
-      rating,
-      note: note.value,
-      entries: ps.entries.map((e) => ({
-        exId: e.exId,
-        name: e.name,
-        sets: e.sets.map((x) => ({ weight: x.weight || 0, reps: x.reps || 0, done: !!x.done })),
-      })),
-    }
-    await container.workouts.addHistory(rec)
-    history.value = [rec, ...history.value]
+    await logSession(ps, rating, note.value, ps.endedAt)
     session.value = null
     await container.workouts.setActiveSession(null)
     pending.value = null

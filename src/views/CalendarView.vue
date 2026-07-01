@@ -3,6 +3,7 @@ import { computed, ref, type CSSProperties } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import { useWorkoutStore } from '@/stores/workout'
 import { usePlansStore } from '@/stores/plans'
 import { buildCalendar, type CalendarCell } from '@/domain/services/training'
@@ -11,11 +12,13 @@ import { feltColor } from '@/lib/format'
 const router = useRouter()
 const workout = useWorkoutStore()
 const plans = usePlansStore()
-const { history } = storeToRefs(workout)
+const { history, session } = storeToRefs(workout)
 const { plans: planList } = storeToRefs(plans)
 
 const offset = ref(0)
-const cal = computed(() => buildCalendar(history.value, planList.value, feltColor, offset.value))
+const cal = computed(() =>
+  buildCalendar(history.value, planList.value, feltColor, offset.value, Date.now(), session.value),
+)
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 const LEGEND: [string, CSSProperties][] = [
@@ -24,6 +27,7 @@ const LEGEND: [string, CSSProperties][] = [
   ['Grindy', { background: '#C9721F' }],
   ['Failed', { background: '#C0392B' }],
   ['Partial', { border: '1.5px solid var(--ink-3)' }],
+  ['In progress', { border: '1.5px solid var(--accent)' }],
   ['Planned', { border: '1.5px dashed var(--accent)' }],
 ]
 
@@ -32,7 +36,9 @@ function dotStyle(c: CalendarCell): CSSProperties {
   if (c.hasSession)
     return c.complete
       ? { ...base, background: c.dotColor || 'var(--ink-3)' }
-      : { ...base, background: 'transparent', border: '1.5px solid ' + (c.dotColor || 'var(--ink-3)') }
+      : // Partial = ink ring (matches the legend); keeps it distinct from the accent in-progress ring.
+        { ...base, background: 'transparent', border: '1.5px solid var(--ink-3)' }
+  if (c.inProgress) return { ...base, background: 'transparent', border: '1.5px solid var(--accent)' }
   if (c.showSched) return { ...base, background: 'transparent', border: '1.5px dashed var(--accent)' }
   return { ...base, opacity: 0 }
 }
@@ -46,17 +52,16 @@ function numStyle(c: CalendarCell): CSSProperties {
 }
 function onCell(c: CalendarCell) {
   if (c.target?.kind === 'session') router.push('/session/' + c.target.sessionId)
+  else if (c.target?.kind === 'active') router.push('/workout')
   else if (c.target?.kind === 'planned') router.push(`/planned/${c.target.planId}/${c.target.dayId}`)
 }
 </script>
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="close" @click="router.back()" />
-      <div class="text-[14px] font-extrabold">Calendar</div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader title="Calendar">
+      <template #left><IconButton icon="close" @click="router.back()" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
       <div class="mb-[14px] flex items-center justify-between">

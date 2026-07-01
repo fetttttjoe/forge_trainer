@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import SectionLabel from '@/components/ui/SectionLabel.vue'
 import Segmented from '@/components/ui/Segmented.vue'
 import Toggle from '@/components/ui/Toggle.vue'
@@ -24,11 +25,9 @@ const themeOptions = [
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="back" @click="router.back()" />
-      <div class="text-[14px] font-extrabold">Settings</div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader title="Settings">
+      <template #left><IconButton icon="back" @click="router.back()" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
       <div class="mx-[2px] mb-[10px] mt-2"><SectionLabel text="Account" /></div>

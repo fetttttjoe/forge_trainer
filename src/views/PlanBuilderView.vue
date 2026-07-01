@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import TextButton from '@/components/ui/TextButton.vue'
 import PillButton from '@/components/ui/PillButton.vue'
 import Stepper from '@/components/ui/Stepper.vue'
@@ -74,15 +75,15 @@ async function start() {
 
 <template>
   <div v-if="plan && curDay" class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="back" @click="router.push('/plans')" />
+    <ScreenHeader>
+      <template #left><IconButton icon="back" @click="router.push('/plans')" /></template>
       <input
         :value="plan.name"
-        class="mx-[10px] flex-1 border-none bg-transparent text-center text-[15px] font-extrabold text-ink outline-none"
+        class="w-full border-none bg-transparent text-center text-[15px] font-extrabold text-ink outline-none"
         @input="plans.rename(props.id, ($event.target as HTMLInputElement).value)"
       />
-      <TextButton label="Done" variant="dark" @click="router.push('/plans')" />
-    </div>
+      <template #right><TextButton label="Done" variant="dark" @click="router.push('/plans')" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
       <!-- Day tabs -->

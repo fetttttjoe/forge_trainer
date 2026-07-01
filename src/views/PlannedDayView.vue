@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import PillButton from '@/components/ui/PillButton.vue'
 import { usePlansStore } from '@/stores/plans'
 import { useLibraryStore } from '@/stores/library'
@@ -37,11 +38,9 @@ async function start() {
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="back" @click="router.back()" />
-      <div class="text-[14px] font-extrabold">Planned</div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader title="Planned">
+      <template #left><IconButton icon="back" @click="router.back()" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-5 pb-5 pt-[6px]">
       <div class="text-[11px] font-bold uppercase tracking-[0.05em] text-ink-3">{{ plan?.name }}</div>

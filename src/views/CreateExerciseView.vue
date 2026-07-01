@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TextButton from '@/components/ui/TextButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import Input from '@/components/ui/Input.vue'
 import Textarea from '@/components/ui/Textarea.vue'
 import Segmented from '@/components/ui/Segmented.vue'
@@ -74,11 +75,10 @@ function cancel() {
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <TextButton label="Cancel" @click="cancel" />
-      <div class="text-[14px] font-extrabold">New exercise</div>
-      <TextButton label="Save" variant="primary" @click="save" />
-    </div>
+    <ScreenHeader title="New exercise">
+      <template #left><TextButton label="Cancel" @click="cancel" /></template>
+      <template #right><TextButton label="Save" variant="primary" @click="save" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-5 pb-5 pt-[10px]">
       <div class="mb-[18px] text-[13px] text-ink-3">

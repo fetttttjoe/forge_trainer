@@ -114,6 +114,8 @@ export interface WorkoutSession {
   entries: SessionEntry[]
   /** epoch ms. */
   startedAt: number
+  /** epoch ms of the last logged activity — honest end time for abandoned sessions. */
+  updatedAt?: number
 }
 
 export interface Rating {

@@ -3,6 +3,7 @@ import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import { useWorkoutStore } from '@/stores/workout'
 import { relTime } from '@/domain/services/training'
 import { feltColor, feltLabel, kg } from '@/lib/format'
@@ -29,11 +30,9 @@ function setLabel(x: { weight: number; reps: number }): string {
 
 <template>
   <div v-if="sv" class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="back" @click="router.back()" />
-      <div class="text-[14px] font-extrabold">Session</div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader title="Session">
+      <template #left><IconButton icon="back" @click="router.back()" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-5 pb-6 pt-[6px]">
       <div class="text-[11px] font-bold uppercase tracking-[0.05em] text-ink-3">

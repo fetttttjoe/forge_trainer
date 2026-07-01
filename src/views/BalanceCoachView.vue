@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import { useWorkoutStore } from '@/stores/workout'
 import { useLibraryStore } from '@/stores/library'
 import { muscleBalance } from '@/domain/services/training'
@@ -12,20 +13,23 @@ const workout = useWorkoutStore()
 const lib = useLibraryStore()
 const { history } = storeToRefs(workout)
 
-const lowGroup = computed(() => {
-  const b = muscleBalance(history.value, lib.exOf)
-  return b.length ? b.reduce((m, x) => (x.count < m.count ? x : m)).name : 'Legs'
-})
-const weakBalance = computed(() => `You've trained back a lot and ${lowGroup.value.toLowerCase()} the least in 30 days.`)
+const balance = computed(() => muscleBalance(history.value, lib.exOf))
+const lowGroup = computed(() =>
+  balance.value.length ? balance.value.reduce((m, x) => (x.count < m.count ? x : m)).name : 'Legs',
+)
+const topGroup = computed(() =>
+  balance.value.length ? balance.value.reduce((m, x) => (x.count > m.count ? x : m)).name : 'Back',
+)
+const weakBalance = computed(
+  () => `You've trained ${topGroup.value.toLowerCase()} a lot and ${lowGroup.value.toLowerCase()} the least in 30 days.`,
+)
 </script>
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="back" @click="router.back()" />
-      <div class="text-[14px] font-extrabold">Balance coach</div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader title="Balance coach">
+      <template #left><IconButton icon="back" @click="router.back()" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-5 pb-6 pt-[6px]">
       <div class="flex items-center gap-3 rounded-[16px] border-[1.5px] border-dashed border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--accent)_9%,transparent)] px-[15px] py-[14px]">

@@ -9,6 +9,7 @@ import type {
   Plan,
   PlanDay,
   PrevPerformance,
+  Rating,
   SessionEntry,
   WorkoutSession,
 } from '../types'
@@ -187,6 +188,36 @@ export function buildSession(
   }
 }
 
+/** Turn a (finished or abandoned) session into its history record. Dated by `startedAt` so the
+ * workout always lands on the calendar day it was performed, no matter when it gets saved. */
+export function sessionRecord(
+  s: WorkoutSession,
+  id: string,
+  rating: Rating | null,
+  note: string,
+  endedAt: number,
+): HistorySession {
+  const total = s.entries.reduce((a, e) => a + e.sets.length, 0)
+  const done = s.entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0)
+  return {
+    id,
+    planName: s.planName,
+    dayLabel: s.dayLabel,
+    date: new Date(s.startedAt).toISOString(),
+    durationMin: Math.max(1, Math.round((endedAt - s.startedAt) / 60000)),
+    complete: total > 0 && done === total,
+    doneSets: done,
+    totalSets: total,
+    rating,
+    note,
+    entries: s.entries.map((e) => ({
+      exId: e.exId,
+      name: e.name,
+      sets: e.sets.map((x) => ({ weight: x.weight || 0, reps: x.reps || 0, done: !!x.done })),
+    })),
+  }
+}
+
 const within = (iso: string, days: number, now: number) => now - new Date(iso).getTime() < days * DAY_MS
 
 export interface BalanceBar {
@@ -318,12 +349,15 @@ export interface CalendarCell {
   isToday: boolean
   hasSession: boolean
   complete: boolean
+  /** The active (not yet finished) session was started this day. */
+  inProgress: boolean
   /** Felt color of the session that day, or null. */
   dotColor: string | null
   /** A future scheduled day with no session yet. */
   showSched: boolean
   target:
     | { kind: 'session'; sessionId: string }
+    | { kind: 'active' }
     | { kind: 'planned'; planId: string; dayId: string }
     | null
 }
@@ -342,13 +376,15 @@ export interface CalendarModel {
   upcoming: CalendarUpcoming[]
 }
 
-/** Month grid + upcoming scheduled days. `offset` shifts months from the current one. */
+/** Month grid + upcoming scheduled days. `offset` shifts months from the current one.
+ * `active` is the in-progress session, shown on the day it was started. */
 export function buildCalendar(
   history: HistorySession[],
   plans: Plan[],
   feltColor: (felt: string | undefined) => string,
   offset = 0,
   now = Date.now(),
+  active: WorkoutSession | null = null,
 ): CalendarModel {
   const base = new Date(now)
   base.setDate(1)
@@ -376,9 +412,11 @@ export function buildCalendar(
           dayId: d.id,
         })
 
+  const activeKey = active ? dayKey(new Date(active.startedAt)) : null
+
   const cells: CalendarCell[] = []
   for (let i = 0; i < startPad; i++)
-    cells.push({ blank: true, day: 0, isToday: false, hasSession: false, complete: false, dotColor: null, showSched: false, target: null })
+    cells.push({ blank: true, day: 0, isToday: false, hasSession: false, complete: false, inProgress: false, dotColor: null, showSched: false, target: null })
   for (let dn = 1; dn <= daysIn; dn++) {
     const key = year + '-' + pad(month + 1) + '-' + pad(dn)
     const wd = new Date(year, month, dn).getDay()
@@ -386,6 +424,7 @@ export function buildCalendar(
     const sched = schedByWd[wd] || []
     const isToday = key === todayKey
     const isFuture = key > todayKey
+    const inProgress = key === activeKey && !sess.length
     let dotColor: string | null = null
     let complete = false
     if (sess.length) {
@@ -393,20 +432,23 @@ export function buildCalendar(
       dotColor = wf.rating && wf.rating.felt ? feltColor(wf.rating.felt) : 'var(--ink-3)'
       complete = sess.some((x) => x.complete)
     }
-    const showSched = isFuture && sched.length > 0 && !sess.length
+    const showSched = isFuture && sched.length > 0 && !sess.length && !inProgress
     cells.push({
       blank: false,
       day: dn,
       isToday,
       hasSession: sess.length > 0,
       complete,
+      inProgress,
       dotColor,
       showSched,
       target: sess.length
         ? { kind: 'session', sessionId: sess[0].id }
-        : sched.length
-          ? { kind: 'planned', planId: sched[0].planId, dayId: sched[0].dayId }
-          : null,
+        : inProgress
+          ? { kind: 'active' }
+          : sched.length
+            ? { kind: 'planned', planId: sched[0].planId, dayId: sched[0].dayId }
+            : null,
     })
   }
 

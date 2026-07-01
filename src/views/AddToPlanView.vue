@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import { usePlansStore } from '@/stores/plans'
 import { useLibraryStore } from '@/stores/library'
 import { useUiStore } from '@/stores/ui'
@@ -30,11 +31,9 @@ async function add(planId: string, dayId: string) {
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="back" @click="router.back()" />
-      <div class="text-[14px] font-extrabold">Add to plan</div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader title="Add to plan">
+      <template #left><IconButton icon="back" @click="router.back()" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
       <div class="mb-[14px] text-[13px] text-ink-3">Add <b class="text-ink">{{ exName }}</b> to a day:</div>

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import ListRow from '@/components/ui/ListRow.vue'
 import PillButton from '@/components/ui/PillButton.vue'
 import SearchField from '@/components/ui/SearchField.vue'
@@ -31,11 +32,9 @@ async function add(exId: string, name: string) {
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="back" @click="router.push('/plan/' + id)" />
-      <div class="text-[14px] font-extrabold">Add to {{ dayLabel }}</div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader :title="'Add to ' + dayLabel">
+      <template #left><IconButton icon="back" @click="router.push('/plan/' + id)" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
       <div class="mb-3">

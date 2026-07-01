@@ -3,6 +3,7 @@ import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import PillButton from '@/components/ui/PillButton.vue'
 import SetRow from '@/components/ui/SetRow.vue'
 import { useWorkoutStore } from '@/stores/workout'
@@ -79,14 +80,11 @@ async function finish() {
 
 <template>
   <div v-if="cur" class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="close" @click="router.push('/')" />
-      <div class="text-center">
-        <div class="text-[11px] font-bold uppercase tracking-[0.05em] text-ink-3">{{ session!.dayLabel }}</div>
-        <div class="mt-px text-[13px] font-bold">Exercise {{ session!.exIndex + 1 }} / {{ session!.entries.length }}</div>
-      </div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader>
+      <template #left><IconButton icon="close" @click="router.push('/')" /></template>
+      <div class="text-[11px] font-bold uppercase tracking-[0.05em] text-ink-3">{{ session!.dayLabel }}</div>
+      <div class="mt-px text-[13px] font-bold">Exercise {{ session!.exIndex + 1 }} / {{ session!.entries.length }}</div>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-5 pt-[6px]">
       <div class="text-[26px] font-extrabold tracking-[-0.025em]">{{ cur.name }}</div>

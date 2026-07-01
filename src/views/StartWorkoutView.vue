@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import PillButton from '@/components/ui/PillButton.vue'
 import { useWorkoutStore } from '@/stores/workout'
 import { usePlansStore } from '@/stores/plans'
@@ -38,11 +39,9 @@ async function start(planId: string, dayId: string) {
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="close" @click="router.back()" />
-      <div class="text-[14px] font-extrabold">Start a workout</div>
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader title="Start a workout">
+      <template #left><IconButton icon="close" @click="router.back()" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
       <div v-if="session" class="mb-[18px]">

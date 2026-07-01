@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildCalendar,
   buildSession,
   computePRs,
   e1rm,
@@ -7,9 +8,10 @@ import {
   lastSessionFor,
   muscleBalance,
   progressStats,
+  sessionRecord,
   streak,
 } from './training'
-import type { Exercise, HistorySession, Plan } from '../types'
+import type { Exercise, HistorySession, Plan, WorkoutSession } from '../types'
 
 const DAY = 864e5
 const iso = (daysAgo: number, now: number) => new Date(now - daysAgo * DAY).toISOString()
@@ -140,6 +142,81 @@ describe('progressStats', () => {
     const s = progressStats(hist(now), 'bench')
     expect(s.bestWeight).toBe(80)
     expect(s.e1rmSeries.length).toBe(3) // three sessions with a done bench set
+  })
+})
+
+describe('sessionRecord', () => {
+  const session = (startedAt: number): WorkoutSession => ({
+    planId: 'p1',
+    planName: 'P',
+    dayId: 'd1',
+    dayLabel: 'Push',
+    exIndex: 0,
+    startedAt,
+    entries: [
+      {
+        exId: 'bench',
+        name: 'Bench',
+        interval: false,
+        rest: 90,
+        reps: 5,
+        sets: [
+          { weight: 80, reps: 5, done: true },
+          { weight: 80, reps: 5, done: false },
+        ],
+        prev: null,
+        work: 7,
+        workRest: 3,
+        rounds: 6,
+      },
+    ],
+  })
+
+  it('dates the record by session start, not by when it is saved', () => {
+    // Started 23:30 local, rated 45 min later (past midnight).
+    const start = new Date(2026, 6, 10, 23, 30).getTime()
+    const rec = sessionRecord(session(start), 'id1', null, '', start + 45 * 60000)
+    const d = new Date(rec.date)
+    expect([d.getFullYear(), d.getMonth(), d.getDate()]).toEqual([2026, 6, 10])
+    expect(rec.durationMin).toBe(45)
+  })
+
+  it('computes set counts and completeness', () => {
+    const start = new Date(2026, 6, 10, 18, 0).getTime()
+    const rec = sessionRecord(session(start), 'id1', null, 'note', start + 60000)
+    expect(rec.doneSets).toBe(1)
+    expect(rec.totalSets).toBe(2)
+    expect(rec.complete).toBe(false)
+    expect(rec.note).toBe('note')
+  })
+})
+
+describe('buildCalendar', () => {
+  const feltColor = () => 'red'
+  const now = new Date(2026, 6, 15, 12, 0).getTime()
+
+  it('shows a logged session on the local day it was performed', () => {
+    const h = hist(now).slice(0, 1) // one session today
+    const cal = buildCalendar(h, [], feltColor, 0, now)
+    const cell = cal.cells.find((c) => !c.blank && c.day === 15)!
+    expect(cell.hasSession).toBe(true)
+    expect(cell.target).toEqual({ kind: 'session', sessionId: h[0].id })
+  })
+
+  it('marks the active session in progress on the day it was started', () => {
+    const active: WorkoutSession = {
+      planId: 'p1',
+      planName: 'P',
+      dayId: 'd1',
+      dayLabel: 'Push',
+      exIndex: 0,
+      entries: [],
+      startedAt: now - 864e5, // started yesterday, never finished
+    }
+    const cal = buildCalendar([], [], feltColor, 0, now, active)
+    const cell = cal.cells.find((c) => !c.blank && c.day === 14)!
+    expect(cell.inProgress).toBe(true)
+    expect(cell.target).toEqual({ kind: 'active' })
   })
 })
 

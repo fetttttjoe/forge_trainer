@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
+import ScreenHeader from '@/components/ScreenHeader.vue'
 import { useLibraryStore } from '@/stores/library'
 import { useWorkoutStore } from '@/stores/workout'
 import { feltColor, feltLabel, kg } from '@/lib/format'
@@ -25,10 +26,9 @@ const lastFelt = computed(() => dHist.value[0]?.rating?.felt ?? null)
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
-    <div class="flex items-center justify-between px-[18px] pb-[10px] pt-[14px]">
-      <IconButton icon="back" @click="router.back()" />
-      <div class="w-[37px]" />
-    </div>
+    <ScreenHeader>
+      <template #left><IconButton icon="back" @click="router.back()" /></template>
+    </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-5 pb-5 pt-[6px]">
       <span v-if="d.custom" class="rounded-[6px] bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] px-2 py-[3px] text-[9px] font-extrabold tracking-[0.05em] text-accent">MY EXERCISE</span>
