@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="min-width:0;background:var(--surface-2,#eee);border-radius:11px;padding:7px 4px;text-align:center">
+  <div style="font-size:9.5px;font-weight:700;color:var(--ink-3,#999);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ label }}</div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:5px">
+    <button onClick="{{ onDec }}" style="width:22px;height:22px;flex-shrink:0;border-radius:7px;border:1px solid var(--line-2,#ccc);background:var(--surface,#fff);color:var(--ink,#1a1a1a);font-size:15px;font-weight:700;cursor:pointer;line-height:1">−</button>
+    <span style="min-width:0;flex:1;text-align:center;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums">{{ value }}</span>
+    <button onClick="{{ onInc }}" style="width:22px;height:22px;flex-shrink:0;border-radius:7px;border:1px solid var(--line-2,#ccc);background:var(--surface,#fff);color:var(--ink,#1a1a1a);font-size:14px;font-weight:700;cursor:pointer;line-height:1">+</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:120,&quot;height&quot;:70},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Sets&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;3&quot;,&quot;tsType&quot;:&quot;string | number&quot;},&quot;onInc&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onDec&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return { label: this.props.label || '', value: (this.props.value != null ? this.props.value : 0) + '', onInc: this.props.onInc || (() => {}), onDec: this.props.onDec || (() => {}) };
+  }
+}
+</script>
+</body>
+</html>

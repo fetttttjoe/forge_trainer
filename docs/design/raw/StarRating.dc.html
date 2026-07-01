@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;gap:8px;justify-content:center">
+  <sc-for list="{{ stars }}" as="s" hint-placeholder-count="5"><button onClick="{{ s.onClick }}" style="background:none;border:none;cursor:pointer;padding:2px;line-height:0"><svg width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="{{ s.fill }}" stroke="{{ s.stroke }}" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L4 9.5l6-.8z"/></svg></button></sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:260,&quot;height&quot;:56},&quot;value&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:4,&quot;min&quot;:0,&quot;max&quot;:5,&quot;tsType&quot;:&quot;number&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;tsType&quot;:&quot;number&quot;},&quot;onChange&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(n: number) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const val = this.props.value || 0; const onChange = this.props.onChange || (() => {}); const size = this.props.size || 40;
+    return { size, stars: [1, 2, 3, 4, 5].map(n => ({ fill: n <= val ? 'var(--accent,#EF5A2E)' : 'none', stroke: n <= val ? 'var(--accent,#EF5A2E)' : 'var(--line-2,#ccc)', onClick: () => onChange(n) })) };
+  }
+}
+</script>
+</body>
+</html>

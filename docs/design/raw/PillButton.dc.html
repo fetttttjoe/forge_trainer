@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<button onClick="{{ onClick }}" style="{{ st }}">{{ iconEl }}{{ label }}</button>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:260,&quot;height&quot;:70},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Start workout&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;primary&quot;,&quot;dark&quot;,&quot;secondary&quot;,&quot;ghost&quot;,&quot;soft&quot;,&quot;good&quot;],&quot;default&quot;:&quot;primary&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;play&quot;,&quot;plus&quot;,&quot;check&quot;,&quot;back&quot;],&quot;default&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onClick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  icon(name) {
+    if (!name || name === 'none') return null;
+    const h = React.createElement;
+    const svg = (children, opts) => h('svg', Object.assign({ width: 16, height: 16, viewBox: '0 0 24 24', style: { flexShrink: 0 } }, opts), children);
+    if (name === 'play') return svg(h('path', { d: 'M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z' }), { fill: 'currentColor' });
+    const stroke = { fill: 'none', stroke: 'currentColor', 'strokeWidth': 2.4, 'strokeLinecap': 'round', 'strokeLinejoin': 'round' };
+    if (name === 'plus') return svg(h('path', { d: 'M12 5v14M5 12h14' }), stroke);
+    if (name === 'check') return svg(h('path', { d: 'M5 12l4.5 4.5L19 6' }), stroke);
+    if (name === 'back') return svg(h('path', { d: 'M15 6l-6 6 6 6' }), stroke);
+    return null;
+  }
+  renderVals() {
+    const v = this.props.variant || 'primary';
+    const base = { width: '100%', padding: '14px', borderRadius: '14px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', font: 'inherit' };
+    const map = {
+      primary: { ...base, background: 'var(--accent,#EF5A2E)', color: '#fff' },
+      dark: { ...base, background: 'var(--ink,#1a1a1a)', color: 'var(--bg,#fff)' },
+      secondary: { ...base, background: 'var(--surface,#fff)', color: 'var(--ink,#1a1a1a)', border: '1px solid var(--line,#e7e5e0)' },
+      ghost: { ...base, background: 'transparent', color: 'var(--ink-2,#555)' },
+      soft: { ...base, background: 'color-mix(in srgb, var(--accent,#EF5A2E) 10%, transparent)', color: 'var(--accent,#EF5A2E)', border: '1px solid color-mix(in srgb, var(--accent,#EF5A2E) 28%, transparent)' },
+      good: { ...base, background: 'var(--good,#17936B)', color: '#fff' },
+    };
+    return { label: this.props.label || 'Button', onClick: this.props.onClick || (() => {}), st: map[v] || map.primary, iconEl: this.icon(this.props.icon) };
+  }
+}
+</script>
+</body>
+</html>

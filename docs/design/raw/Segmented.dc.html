@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;gap:4px;background:var(--surface-2,#eee);border-radius:12px;padding:4px"><sc-for list="{{ items }}" as="it" hint-placeholder-count="2"><button onClick="{{ it.onClick }}" style="{{ it.st }}">{{ it.label }}</button></sc-for></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:220,&quot;height&quot;:56},&quot;options&quot;:{&quot;editor&quot;:null,&quot;default&quot;:[&quot;Light&quot;,&quot;Dark&quot;],&quot;tsType&quot;:&quot;(string | {label:string,value:string})[]&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onChange&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const opts = this.props.options || ['Light', 'Dark'];
+    const val = this.props.value;
+    const onChange = this.props.onChange || (() => {});
+    const base = { flex: 1, textAlign: 'center', padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '13px', font: 'inherit' };
+    return {
+      items: opts.map((o) => {
+        const key = (o && o.value != null) ? o.value : o;
+        const label = (o && o.label != null) ? o.label : o;
+        const on = key === val;
+        return { label, key, onClick: () => onChange(key), st: on ? { ...base, background: 'var(--ink,#1a1a1a)', color: 'var(--bg,#fff)', fontWeight: 700 } : { ...base, background: 'transparent', color: 'var(--ink-2,#555)', fontWeight: 600 } };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

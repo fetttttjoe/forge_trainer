@@ -1,0 +1,91 @@
+@import 'tailwindcss';
+
+/* Forge design tokens (from the design system). White-label brands override --accent (and any
+   token) at :root; every component reads these, so re-theming is pure token overrides. */
+:root {
+  --bg: #f4f3f0;
+  --surface: #ffffff;
+  --surface-2: #eeedea;
+  --line: #e7e5e0;
+  --line-2: #d7d4cd;
+  --ink: #1a1917;
+  --ink-2: #5d5b55;
+  --ink-3: #95928b;
+  --accent: #ef5a2e;
+  --good: #17936b;
+  --warn: #c9721f;
+  --shadow: 0 1px 2px rgba(20, 18, 14, 0.04), 0 12px 32px -20px rgba(20, 18, 14, 0.28);
+}
+
+[data-theme='dark'] {
+  --bg: #121110;
+  --surface: #1c1b19;
+  --surface-2: #24231f;
+  --line: #2d2c28;
+  --line-2: #3b3934;
+  --ink: #f3f2ee;
+  --ink-2: #adaaa1;
+  --ink-3: #77746d;
+  --accent: #ff6a42;
+  --good: #37c58c;
+  --warn: #e0913a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 14px 34px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Map tokens into Tailwind's theme. `inline` keeps utilities referencing the live variable, so
+   dark-mode + brand overrides take effect at runtime. Enables bg-surface, text-ink-3, border-line,
+   text-accent, shadow-card, font-sans, etc. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --shadow-card: var(--shadow);
+  --font-sans: 'Hanken Grotesk Variable', system-ui, sans-serif;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+@keyframes toastin {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+html {
+  background: var(--bg);
+}
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+/* Hidden scrollbars — matches the design's clean look. */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+* {
+  scrollbar-width: none;
+}

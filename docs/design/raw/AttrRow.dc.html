@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;align-items:center;justify-content:space-between">
+  <span style="font-size:14px;font-weight:600;color:var(--ink,#1a1a1a)">{{ label }}</span>
+  <div style="display:flex;gap:9px"><sc-for list="{{ dots }}" as="d" hint-placeholder-count="5"><button onClick="{{ d.onClick }}" style="{{ d.style }}"></button></sc-for></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:300,&quot;height&quot;:40},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Strength&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:0,&quot;max&quot;:5,&quot;tsType&quot;:&quot;number&quot;},&quot;onChange&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(n: number) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const val = this.props.value || 0; const onChange = this.props.onChange || (() => {});
+    const base = { width: '28px', height: '28px', borderRadius: '50%', border: '1.5px solid', cursor: 'pointer', padding: 0 };
+    return { label: this.props.label || 'Attribute', dots: [1, 2, 3, 4, 5].map(n => ({ onClick: () => onChange(n), style: n <= val ? { ...base, background: 'var(--accent,#EF5A2E)', borderColor: 'var(--accent,#EF5A2E)' } : { ...base, background: 'transparent', borderColor: 'var(--line-2,#ccc)' } })) };
+  }
+}
+</script>
+</body>
+</html>

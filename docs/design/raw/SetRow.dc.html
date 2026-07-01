@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="{{ rowStyle }}">
+  <span style="font-size:15px;font-weight:800;color:var(--ink-3,#999);text-align:center;font-variant-numeric:tabular-nums">{{ num }}</span>
+  <div style="display:flex;flex-direction:column;align-items:stretch;gap:3px"><div style="display:flex;align-items:center;justify-content:space-between;gap:6px"><button onClick="{{ onDecW }}" style="{{ stepBtn }}">−</button><span style="flex:1;min-width:0;text-align:center;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{ weight }}</span><button onClick="{{ onIncW }}" style="{{ stepBtn }}">+</button></div><div style="text-align:center;font-size:9.5px;font-weight:600;color:var(--ink-3,#999);min-height:11px;font-variant-numeric:tabular-nums">{{ prevW }}</div></div>
+  <div style="display:flex;flex-direction:column;align-items:stretch;gap:3px"><div style="display:flex;align-items:center;justify-content:space-between;gap:6px"><button onClick="{{ onDecR }}" style="{{ stepBtn }}">−</button><span style="flex:1;min-width:0;text-align:center;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{ reps }}</span><button onClick="{{ onIncR }}" style="{{ stepBtn }}">+</button></div><div style="text-align:center;font-size:9.5px;font-weight:600;color:var(--ink-3,#999);min-height:11px;font-variant-numeric:tabular-nums">{{ prevR }}</div></div>
+  <button onClick="{{ onToggle }}" style="{{ checkStyle }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4.5 4.5L19 6"/></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:330,&quot;height&quot;:64},&quot;num&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;},&quot;weight&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;60&quot;,&quot;tsType&quot;:&quot;string | number&quot;},&quot;reps&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:8,&quot;tsType&quot;:&quot;number&quot;},&quot;prevW&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;last 60&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;prevR&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;last 8&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;done&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onToggle&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onIncW&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onDecW&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onIncR&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onDecR&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const done = !!this.props.done;
+    const stepBtn = { width: '28px', height: '28px', flexShrink: 0, borderRadius: '8px', border: '1px solid var(--line-2,#ccc)', background: 'var(--bg,#fff)', color: 'var(--ink,#1a1a1a)', fontSize: '15px', fontWeight: 700, cursor: 'pointer', lineHeight: 1 };
+    return {
+      num: this.props.num, weight: this.props.weight == null ? '' : this.props.weight, reps: this.props.reps == null ? '' : this.props.reps, prevW: this.props.prevW || '', prevR: this.props.prevR || '',
+      onDecW: this.props.onDecW || (() => {}), onIncW: this.props.onIncW || (() => {}), onDecR: this.props.onDecR || (() => {}), onIncR: this.props.onIncR || (() => {}), onToggle: this.props.onToggle || (() => {}),
+      stepBtn,
+      rowStyle: { display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr) minmax(0, 1fr) 46px', alignItems: 'center', gap: '8px', padding: '10px 10px', borderRadius: '14px', border: '1px solid', background: done ? 'color-mix(in srgb, var(--accent,#EF5A2E) 9%, transparent)' : 'var(--surface,#fff)', borderColor: done ? 'color-mix(in srgb, var(--accent,#EF5A2E) 32%, transparent)' : 'var(--line,#e7e5e0)', boxShadow: 'var(--shadow)' },
+      checkStyle: { width: '40px', height: '40px', borderRadius: '11px', border: '1.5px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, background: done ? 'var(--accent,#EF5A2E)' : 'transparent', borderColor: done ? 'var(--accent,#EF5A2E)' : 'var(--line-2,#ccc)', color: done ? '#fff' : 'transparent' },
+    };
+  }
+}
+</script>
+</body>
+</html>

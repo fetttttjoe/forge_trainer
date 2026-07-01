@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="background:var(--surface,#fff);border:1px solid var(--line,#e7e5e0);border-radius:16px;padding:13px 12px;box-shadow:var(--shadow,0 1px 2px rgba(0,0,0,.05))">
+  <div style="font-size:23px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:{{ valColor }}">{{ value }}<span style="font-size:12px;font-weight:700;color:var(--ink-3,#999)"> {{ unit }}</span></div>
+  <div style="font-size:11px;font-weight:600;color:var(--ink-3,#999);margin-top:1px">{{ label }}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:130,&quot;height&quot;:80},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;day streak&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;5&quot;,&quot;tsType&quot;:&quot;string | number&quot;},&quot;unit&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      label: this.props.label || 'Label',
+      value: (this.props.value != null ? this.props.value : '0') + '',
+      unit: this.props.unit || '',
+      valColor: this.props.accent ? 'var(--accent,#EF5A2E)' : 'var(--ink,#1a1a1a)',
+    };
+  }
+}
+</script>
+</body>
+</html>

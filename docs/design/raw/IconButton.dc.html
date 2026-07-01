@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<button onClick="{{ onClick }}" style="{{ st }}">{{ iconEl }}</button>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:60,&quot;height&quot;:60},&quot;icon&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;back&quot;,&quot;next&quot;,&quot;close&quot;,&quot;plus&quot;,&quot;trash&quot;,&quot;import&quot;,&quot;export&quot;,&quot;sun&quot;,&quot;moon&quot;,&quot;settings&quot;,&quot;calendar&quot;],&quot;default&quot;:&quot;close&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;surface&quot;,&quot;plain&quot;],&quot;default&quot;:&quot;surface&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;muted&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:37,&quot;tsType&quot;:&quot;number&quot;},&quot;onClick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  icon(name, sz) {
+    const h = React.createElement;
+    const S = (kids, w) => h('svg', { width: sz, height: sz, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: w || 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' }, kids);
+    const P = (d) => h('path', { d, key: d });
+    switch (name) {
+      case 'back': return S(P('M15 6l-6 6 6 6'), 2.2);
+      case 'next': return S(P('M9 6l6 6-6 6'), 2.2);
+      case 'close': return S([P('M6 6l12 12'), P('M18 6L6 18')], 2.2);
+      case 'plus': return S(P('M12 5v14M5 12h14'), 2.3);
+      case 'trash': return S(P('M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13'));
+      case 'import': return S(P('M12 3v12M7 10l5 5 5-5M5 21h14'));
+      case 'export': return S(P('M12 15V3M7 8l5-5 5 5M5 21h14'));
+      case 'moon': return S(P('M20 14.5A8 8 0 1 1 9.5 4a6.3 6.3 0 0 0 10.5 10.5Z'), 1.8);
+      case 'sun': return S([h('circle', { cx: 12, cy: 12, r: 4.2, key: 'c' }), P('M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8')], 1.8);
+      case 'settings': return S([h('circle', { cx: 15, cy: 7, r: 2.4, key: 'a' }), h('circle', { cx: 9, cy: 17, r: 2.4, key: 'b' }), P('M4 7h9M17 7h3M4 17h3M11 17h9')], 1.8);
+      case 'calendar': return S([h('rect', { x: 3, y: 4.5, width: 18, height: 17, rx: 2.5, key: 'r' }), P('M3 9h18M8 2.5v4M16 2.5v4')]);
+      default: return null;
+    }
+  }
+  renderVals() {
+    const variant = this.props.variant || 'surface'; const size = this.props.size || 37; const iconSz = this.props.iconSize || Math.round(size * 0.46);
+    const base = { width: size + 'px', height: size + 'px', borderRadius: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0 };
+    const st = variant === 'plain'
+      ? { ...base, background: 'transparent', border: 'none', color: this.props.tone === 'muted' ? 'var(--ink-3,#999)' : 'var(--ink,#1a1a1a)' }
+      : { ...base, background: 'var(--surface,#fff)', border: '1px solid var(--line,#e7e5e0)', color: this.props.tone === 'muted' ? 'var(--ink-3,#999)' : 'var(--ink,#1a1a1a)' };
+    return { onClick: this.props.onClick || (() => {}), st, iconEl: this.icon(this.props.icon || 'close', iconSz) };
+  }
+}
+</script>
+</body>
+</html>
