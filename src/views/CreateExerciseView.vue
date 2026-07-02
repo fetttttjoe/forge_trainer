@@ -83,8 +83,12 @@ function cancel() {
       <div class="flex flex-col gap-4">
         <Input label="Name" :value="form.name" placeholder="e.g. One-arm hang · 20 mm" @change="form.name = $event" />
         <div class="flex gap-3">
-          <div class="flex-1"><Input label="Primary muscle" :value="form.muscle" placeholder="Fingers" @change="form.muscle = $event" /></div>
-          <div class="flex-1"><Input label="Equipment" :value="form.equip" placeholder="Hangboard" @change="form.equip = $event" /></div>
+          <div class="flex-1">
+            <Input label="Primary muscle" :value="form.muscle" placeholder="Fingers" @change="form.muscle = $event" />
+          </div>
+          <div class="flex-1">
+            <Input label="Equipment" :value="form.equip" placeholder="Hangboard" @change="form.equip = $event" />
+          </div>
         </div>
         <div>
           <label class="mb-[7px] block text-[12px] font-bold text-ink-2">Tracking type</label>
@@ -93,11 +97,23 @@ function cancel() {
         <div>
           <label class="mb-[7px] block text-[12px] font-bold text-ink-2">Default targets</label>
           <div class="grid grid-cols-3 gap-2">
-            <Stepper v-for="[field, label, step, min] in cfg" :key="field" :label="label" :value="form[field]" @inc="bump(field, step, min)" @dec="bump(field, -step, min)" />
+            <Stepper
+              v-for="[field, label, step, min] in cfg"
+              :key="field"
+              :label="label"
+              :value="form[field]"
+              @inc="bump(field, step, min)"
+              @dec="bump(field, -step, min)"
+            />
           </div>
           <div class="mt-[7px] text-[11px] text-ink-3">Set once — used every time you add this to a plan.</div>
         </div>
-        <Textarea label="Instructions" :value="form.instr" placeholder="Cues, grip, tempo…" @change="form.instr = $event" />
+        <Textarea
+          label="Instructions"
+          :value="form.instr"
+          placeholder="Cues, grip, tempo…"
+          @change="form.instr = $event"
+        />
       </div>
     </div>
   </div>

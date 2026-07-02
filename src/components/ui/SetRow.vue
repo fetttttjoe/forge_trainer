@@ -51,7 +51,16 @@ const stepBtn =
       :class="done ? 'border-accent bg-accent text-white' : 'border-line-2 bg-transparent text-transparent'"
       @click="$emit('toggle')"
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <path d="M5 12l4.5 4.5L19 6" />
       </svg>
     </button>

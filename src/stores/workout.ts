@@ -42,12 +42,8 @@ export const useWorkoutStore = defineStore('workout', () => {
 
   let loopId: ReturnType<typeof setInterval> | undefined
 
-  const curEntry = computed(() =>
-    session.value ? session.value.entries[session.value.exIndex] : null,
-  )
-  const isLast = computed(
-    () => !!session.value && session.value.exIndex >= session.value.entries.length - 1,
-  )
+  const curEntry = computed(() => (session.value ? session.value.entries[session.value.exIndex] : null))
+  const isLast = computed(() => !!session.value && session.value.exIndex >= session.value.entries.length - 1)
 
   async function load() {
     history.value = await container.workouts.listHistory()
@@ -248,8 +244,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     useUiStore().toast(ps.complete ? 'Session logged ✓' : `Logged as partial (${ps.done}/${ps.total})`)
   }
 
-  const saveRate = () =>
-    commit({ stars: stars.value, felt: felt.value, attrs: { ...attrs.value } })
+  const saveRate = () => commit({ stars: stars.value, felt: felt.value, attrs: { ...attrs.value } })
   const skipRate = () => commit(null)
 
   return {

@@ -109,7 +109,9 @@ function onCell(c: CalendarCell) {
       </div>
 
       <div class="mb-[2px] grid grid-cols-7 gap-1">
-        <div v-for="(w, i) in DAY_LETTERS" :key="i" class="pb-[2px] text-center text-[10px] font-bold text-ink-3">{{ w }}</div>
+        <div v-for="(w, i) in DAY_LETTERS" :key="i" class="pb-[2px] text-center text-[10px] font-bold text-ink-3">
+          {{ w }}
+        </div>
       </div>
       <div class="grid grid-cols-7 gap-1">
         <template v-for="(c, i) in cal.cells" :key="i">
@@ -118,7 +120,10 @@ function onCell(c: CalendarCell) {
             v-else
             type="button"
             class="flex aspect-square flex-col items-center justify-center gap-[3px] rounded-[9px] border-none py-[3px]"
-            :class="[c.isToday ? 'bg-[color-mix(in_srgb,var(--accent)_15%,transparent)]' : 'bg-transparent', c.target ? 'cursor-pointer' : 'cursor-default']"
+            :class="[
+              c.isToday ? 'bg-[color-mix(in_srgb,var(--accent)_15%,transparent)]' : 'bg-transparent',
+              c.target ? 'cursor-pointer' : 'cursor-default',
+            ]"
             @click="onCell(c)"
           >
             <span :style="numStyle(c)">{{ c.day }}</span>
@@ -149,12 +154,18 @@ function onCell(c: CalendarCell) {
             class="flex w-full cursor-pointer items-center gap-3 rounded-[14px] border border-line bg-surface px-[14px] py-[12px] text-left text-ink shadow-card"
             @click="router.push(paths.planned(u.planId, u.dayId))"
           >
-            <div class="shrink-0 whitespace-nowrap rounded-[8px] bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] px-[9px] py-[5px] text-[10.5px] font-extrabold uppercase tracking-[0.02em] text-accent">{{ u.when }}</div>
+            <div
+              class="shrink-0 whitespace-nowrap rounded-[8px] bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] px-[9px] py-[5px] text-[10.5px] font-extrabold uppercase tracking-[0.02em] text-accent"
+            >
+              {{ u.when }}
+            </div>
             <div class="min-w-0 flex-1">
               <div class="text-[14px] font-bold">{{ u.day }}</div>
               <div class="text-[12px] text-ink-3">{{ u.plan }}</div>
             </div>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="shrink-0 text-ink-3"><path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" /></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="shrink-0 text-ink-3">
+              <path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" />
+            </svg>
           </button>
         </div>
       </template>
@@ -188,7 +199,9 @@ function onCell(c: CalendarCell) {
           >
             <span class="h-2 w-2 shrink-0 rounded-full border-[1.5px] border-accent" />
             <span class="flex-1 text-[14px] font-bold">In progress — resume</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--accent)"><path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" /></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--accent)">
+              <path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" />
+            </svg>
           </button>
         </div>
       </div>

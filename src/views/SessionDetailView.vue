@@ -57,7 +57,9 @@ function bump(x: EditSet, field: 'weight' | 'reps', delta: number) {
 }
 
 const done = computed(() =>
-  view.value ? (view.value.doneSets ?? view.value.entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0)) : 0,
+  view.value
+    ? (view.value.doneSets ?? view.value.entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0))
+    : 0,
 )
 const total = computed(() =>
   view.value ? (view.value.totalSets ?? view.value.entries.reduce((a, e) => a + e.sets.length, 0)) : 0,
@@ -90,30 +92,56 @@ function setLabel(x: EditSet): string {
       <div class="mt-3 flex flex-wrap gap-[7px]">
         <span
           class="rounded-full px-3 py-[6px] text-[12px] font-bold"
-          :class="view.complete ? 'bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-good' : 'bg-[color-mix(in_srgb,var(--warn)_16%,transparent)] text-warn'"
+          :class="
+            view.complete
+              ? 'bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-good'
+              : 'bg-[color-mix(in_srgb,var(--warn)_16%,transparent)] text-warn'
+          "
         >
           {{ view.complete ? 'Complete' : `Partial · ${done}/${total}` }}
         </span>
-        <span class="rounded-full bg-surface-2 px-3 py-[6px] text-[12px] font-bold text-ink-2">{{ view.durationMin }} min</span>
-        <span class="rounded-full bg-surface-2 px-3 py-[6px] text-[12px] font-bold" :style="{ color: feltColor(view.rating?.felt) }">{{ feltLabel(view.rating?.felt) }}</span>
-        <span class="rounded-full bg-surface-2 px-3 py-[6px] text-[12px] font-bold text-ink-2">★ {{ view.rating?.stars ?? '—' }}</span>
+        <span class="rounded-full bg-surface-2 px-3 py-[6px] text-[12px] font-bold text-ink-2"
+          >{{ view.durationMin }} min</span
+        >
+        <span
+          class="rounded-full bg-surface-2 px-3 py-[6px] text-[12px] font-bold"
+          :style="{ color: feltColor(view.rating?.felt) }"
+          >{{ feltLabel(view.rating?.felt) }}</span
+        >
+        <span class="rounded-full bg-surface-2 px-3 py-[6px] text-[12px] font-bold text-ink-2"
+          >★ {{ view.rating?.stars ?? '—' }}</span
+        >
       </div>
 
-      <div v-if="view.note && view.note.trim()" class="mt-[14px] rounded-[14px] border border-line bg-surface px-[15px] py-[13px] text-[14px] leading-[1.5] text-ink-2 shadow-card">
+      <div
+        v-if="view.note && view.note.trim()"
+        class="mt-[14px] rounded-[14px] border border-line bg-surface px-[15px] py-[13px] text-[14px] leading-[1.5] text-ink-2 shadow-card"
+      >
         “{{ view.note }}”
       </div>
 
       <div class="mb-4 mt-4 flex flex-col gap-[10px]">
-        <div v-for="(e, i) in view.entries" :key="i" class="rounded-[15px] border border-line bg-surface p-[14px] shadow-card">
+        <div
+          v-for="(e, i) in view.entries"
+          :key="i"
+          class="rounded-[15px] border border-line bg-surface p-[14px] shadow-card"
+        >
           <div class="mb-[10px] flex items-center justify-between">
             <span class="text-[14.5px] font-bold">{{ e.name }}</span>
-            <span class="text-[12px] font-bold text-ink-3">{{ e.sets.filter((x) => x.done).length }}/{{ e.sets.length }} done</span>
+            <span class="text-[12px] font-bold text-ink-3"
+              >{{ e.sets.filter((x) => x.done).length }}/{{ e.sets.length }} done</span
+            >
           </div>
           <div class="flex flex-col gap-[7px]">
             <div v-for="(x, j) in e.sets" :key="j" class="flex items-center gap-[9px]">
               <template v-if="!editing">
-                <span class="h-2 w-2 shrink-0 rounded-full" :style="{ background: x.done ? 'var(--good)' : 'var(--line-2)' }" />
-                <span class="text-[13px] font-semibold" :style="{ color: x.done ? 'var(--ink)' : 'var(--ink-3)' }">{{ setLabel(x) }}</span>
+                <span
+                  class="h-2 w-2 shrink-0 rounded-full"
+                  :style="{ background: x.done ? 'var(--good)' : 'var(--line-2)' }"
+                />
+                <span class="text-[13px] font-semibold" :style="{ color: x.done ? 'var(--ink)' : 'var(--ink-3)' }">{{
+                  setLabel(x)
+                }}</span>
               </template>
               <template v-else>
                 <button
@@ -125,14 +153,40 @@ function setLabel(x: EditSet): string {
                   ✓
                 </button>
                 <div class="flex flex-1 items-center justify-center gap-[7px]">
-                  <button type="button" class="h-[26px] w-[26px] cursor-pointer rounded-[8px] border border-line-2 bg-bg text-[15px] font-bold leading-none text-ink" @click="bump(x, 'weight', -step)">−</button>
-                  <span class="min-w-[58px] text-center text-[13px] font-bold tabular-nums">{{ w(x.weight) }} {{ unit }}</span>
-                  <button type="button" class="h-[26px] w-[26px] cursor-pointer rounded-[8px] border border-line-2 bg-bg text-[14px] font-bold leading-none text-ink" @click="bump(x, 'weight', step)">+</button>
+                  <button
+                    type="button"
+                    class="h-[26px] w-[26px] cursor-pointer rounded-[8px] border border-line-2 bg-bg text-[15px] font-bold leading-none text-ink"
+                    @click="bump(x, 'weight', -step)"
+                  >
+                    −
+                  </button>
+                  <span class="min-w-[58px] text-center text-[13px] font-bold tabular-nums"
+                    >{{ w(x.weight) }} {{ unit }}</span
+                  >
+                  <button
+                    type="button"
+                    class="h-[26px] w-[26px] cursor-pointer rounded-[8px] border border-line-2 bg-bg text-[14px] font-bold leading-none text-ink"
+                    @click="bump(x, 'weight', step)"
+                  >
+                    +
+                  </button>
                 </div>
                 <div class="flex flex-1 items-center justify-center gap-[7px]">
-                  <button type="button" class="h-[26px] w-[26px] cursor-pointer rounded-[8px] border border-line-2 bg-bg text-[15px] font-bold leading-none text-ink" @click="bump(x, 'reps', -1)">−</button>
+                  <button
+                    type="button"
+                    class="h-[26px] w-[26px] cursor-pointer rounded-[8px] border border-line-2 bg-bg text-[15px] font-bold leading-none text-ink"
+                    @click="bump(x, 'reps', -1)"
+                  >
+                    −
+                  </button>
                   <span class="min-w-[34px] text-center text-[13px] font-bold tabular-nums">{{ x.reps }}×</span>
-                  <button type="button" class="h-[26px] w-[26px] cursor-pointer rounded-[8px] border border-line-2 bg-bg text-[14px] font-bold leading-none text-ink" @click="bump(x, 'reps', 1)">+</button>
+                  <button
+                    type="button"
+                    class="h-[26px] w-[26px] cursor-pointer rounded-[8px] border border-line-2 bg-bg text-[14px] font-bold leading-none text-ink"
+                    @click="bump(x, 'reps', 1)"
+                  >
+                    +
+                  </button>
                 </div>
               </template>
             </div>
@@ -147,7 +201,18 @@ function setLabel(x: EditSet): string {
         :class="delArmed ? 'text-accent' : 'text-ink-3'"
         @click="delTap"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.9"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />
+        </svg>
         {{ delArmed ? 'Tap again to delete' : 'Delete session' }}
       </button>
     </div>

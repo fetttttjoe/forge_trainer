@@ -1,8 +1,8 @@
 <script setup lang="ts">
-withDefaults(
-  defineProps<{ value: string | number; label: string; unit?: string; accent?: boolean }>(),
-  { unit: '', accent: false },
-)
+withDefaults(defineProps<{ value: string | number; label: string; unit?: string; accent?: boolean }>(), {
+  unit: '',
+  accent: false,
+})
 </script>
 
 <template>

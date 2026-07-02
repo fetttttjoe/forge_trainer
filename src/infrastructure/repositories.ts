@@ -1,19 +1,7 @@
 // Dexie adapters implementing the domain ports. Nothing outside this file knows about IndexedDB.
 
-import type {
-  Exercise,
-  HistorySession,
-  Plan,
-  Prefs,
-  Theme,
-  WorkoutSession,
-} from '@/domain/types'
-import type {
-  ExerciseRepository,
-  PlanRepository,
-  SettingsRepository,
-  WorkoutRepository,
-} from '@/domain/ports'
+import type { Exercise, HistorySession, Plan, Prefs, Theme, WorkoutSession } from '@/domain/types'
+import type { ExerciseRepository, PlanRepository, SettingsRepository, WorkoutRepository } from '@/domain/ports'
 import { META, db, metaGet, metaSet } from './db'
 
 // Plain-clone before storing so Vue proxies never reach IndexedDB's structured clone.

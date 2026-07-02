@@ -4,7 +4,8 @@ let ctx: AudioContext | null = null
 
 export function beep(): void {
   try {
-    const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    const AC =
+      window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!AC) return
     ctx = ctx || new AC()
     const osc = ctx.createOscillator()

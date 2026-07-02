@@ -5,15 +5,7 @@
 // Deliberately omitted for v1 (YAGNI): AuthProvider, SyncProvider, DeviceDataSource,
 // HealthProvider. They get defined alongside the first adapter that actually needs them.
 
-import type {
-  Exercise,
-  HistorySession,
-  Plan,
-  Prefs,
-  Snapshot,
-  Theme,
-  WorkoutSession,
-} from './types'
+import type { Exercise, HistorySession, Plan, Prefs, Snapshot, Theme, WorkoutSession } from './types'
 
 /** Custom (user-created) exercises. Built-ins live in the bundled dataset, not the repo. */
 export interface ExerciseRepository {

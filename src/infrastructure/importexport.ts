@@ -63,10 +63,7 @@ export interface MergeSummary {
 }
 
 /** Merge two snapshots by id (incoming wins). Pure — used by the import flow and its tests. */
-export function mergeSnapshots(
-  current: Snapshot,
-  incoming: Snapshot,
-): { merged: Snapshot; summary: MergeSummary } {
+export function mergeSnapshots(current: Snapshot, incoming: Snapshot): { merged: Snapshot; summary: MergeSummary } {
   const byId = <T extends { id: string }>(base: T[], add: T[]): T[] => {
     const map = new Map(base.map((x) => [x.id, x]))
     for (const x of add) map.set(x.id, x)

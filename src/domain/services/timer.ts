@@ -38,7 +38,14 @@ export const IDLE_TIMER: TimerState = {
 
 /** Start a rest countdown. */
 export function startRest(sec: number, now = Date.now()): TimerState {
-  return { ...IDLE_TIMER, timeLeft: sec, timerTotal: sec, timerOn: true, endsAt: now + sec * 1000, mode: TimerMode.Rest }
+  return {
+    ...IDLE_TIMER,
+    timeLeft: sec,
+    timerTotal: sec,
+    timerOn: true,
+    endsAt: now + sec * 1000,
+    mode: TimerMode.Rest,
+  }
 }
 
 /** Start an interval (hang/rest × rounds) sequence, beginning with a work phase. */
@@ -77,14 +84,27 @@ export function tick(s: TimerState, now = Date.now()): TickResult {
     // ponytail: catch-up after a long background advances one phase per tick, not all missed ones.
     if (s.phase === IntervalPhase.Work)
       return {
-        state: { ...s, phase: IntervalPhase.Rest, timeLeft: s.workRest, timerTotal: s.workRest, endsAt: now + s.workRest * 1000 },
+        state: {
+          ...s,
+          phase: IntervalPhase.Rest,
+          timeLeft: s.workRest,
+          timerTotal: s.workRest,
+          endsAt: now + s.workRest * 1000,
+        },
         beep: true,
         intervalComplete: false,
       }
     if (s.rep >= s.rounds)
       return { state: { ...s, timerOn: false, timeLeft: 0, endsAt: 0 }, beep: true, intervalComplete: true }
     return {
-      state: { ...s, phase: IntervalPhase.Work, rep: s.rep + 1, timeLeft: s.work, timerTotal: s.work, endsAt: now + s.work * 1000 },
+      state: {
+        ...s,
+        phase: IntervalPhase.Work,
+        rep: s.rep + 1,
+        timeLeft: s.work,
+        timerTotal: s.work,
+        endsAt: now + s.work * 1000,
+      },
       beep: true,
       intervalComplete: false,
     }
@@ -102,9 +122,7 @@ export function addTime(s: TimerState, sec: number): TimerState {
 }
 
 export function togglePause(s: TimerState, now = Date.now()): TimerState {
-  return s.timerOn
-    ? { ...s, timerOn: false, endsAt: 0 }
-    : { ...s, timerOn: true, endsAt: now + s.timeLeft * 1000 }
+  return s.timerOn ? { ...s, timerOn: false, endsAt: 0 } : { ...s, timerOn: true, endsAt: now + s.timeLeft * 1000 }
 }
 
 export function skip(s: TimerState): TimerState {

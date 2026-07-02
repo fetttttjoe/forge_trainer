@@ -57,7 +57,7 @@ src/
   router/            routes
 ```
 
-**Data flow:** view → store (application) → repository *port* ← Dexie adapter; stores call pure
+**Data flow:** view → store (application) → repository _port_ ← Dexie adapter; stores call pure
 domain services. Swapping storage or adding a backend = one new adapter, wired in `app/container.ts`.
 
 ## Notes on the confirmed ADRs
@@ -70,7 +70,7 @@ A few v1 decisions were tightened toward the spec's own "Simplicity > Complexity
   bundled native assets + local Dexie data. The router uses hash history for the webview.
 - **Application layer folded into the Pinia stores.** The v1 use-cases are thin CRUD orchestration;
   a separate pass-through layer would be ceremony. The valuable seam — stores depending on
-  repository *ports*, not Dexie — is kept, so extracting use-cases later is mechanical.
+  repository _ports_, not Dexie — is kept, so extracting use-cases later is mechanical.
 - **Stub ports omitted (ADR §5.4).** `AuthProvider` / `SyncProvider` / `DeviceDataSource` /
   `HealthProvider` are defined alongside the first adapter that needs them, not as dead interfaces
   today. The real seams (repositories, `Clock`, `DataTransfer`) exist now.

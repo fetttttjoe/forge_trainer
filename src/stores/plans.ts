@@ -16,8 +16,7 @@ export const usePlansStore = defineStore('plans', () => {
   }
 
   const byId = (id: string): Plan | undefined => plans.value.find((p) => p.id === id)
-  const dayOf = (plan: Plan | undefined, dayId: string): PlanDay | undefined =>
-    plan?.days.find((d) => d.id === dayId)
+  const dayOf = (plan: Plan | undefined, dayId: string): PlanDay | undefined => plan?.days.find((d) => d.id === dayId)
   const persist = (plan: Plan | undefined) => (plan ? container.plans.save(plan) : Promise.resolve())
 
   async function create(): Promise<Plan> {
@@ -88,14 +87,7 @@ export const usePlansStore = defineStore('plans', () => {
     return entry
   }
 
-  async function bumpEntry(
-    id: string,
-    dayId: string,
-    entryId: string,
-    field: EntryField,
-    delta: number,
-    min: number,
-  ) {
+  async function bumpEntry(id: string, dayId: string, entryId: string, field: EntryField, delta: number, min: number) {
     const p = byId(id)
     const e = dayOf(p, dayId)?.entries.find((x) => x.id === entryId)
     if (!e) return

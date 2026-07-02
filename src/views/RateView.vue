@@ -64,13 +64,23 @@ async function skip() {
       <div class="mt-[26px]">
         <div class="mb-3 text-[12px] font-bold uppercase tracking-[0.05em] text-ink-3">Rate what you trained</div>
         <div class="flex flex-col gap-4">
-          <AttrRow v-for="[k, label] in ATTRS" :key="k" :label="label" :value="attrs[k]" @change="workout.setAttr(k, $event)" />
+          <AttrRow
+            v-for="[k, label] in ATTRS"
+            :key="k"
+            :label="label"
+            :value="attrs[k]"
+            @change="workout.setAttr(k, $event)"
+          />
         </div>
       </div>
 
       <div class="mt-6">
         <div class="mb-[10px] text-[12px] font-bold uppercase tracking-[0.05em] text-ink-3">Note</div>
-        <Textarea :value="note" placeholder="Left arm felt weaker on the last pull…" @change="workout.setNote($event)" />
+        <Textarea
+          :value="note"
+          placeholder="Left arm felt weaker on the last pull…"
+          @change="workout.setNote($event)"
+        />
       </div>
     </div>
 

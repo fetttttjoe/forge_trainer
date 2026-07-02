@@ -53,13 +53,7 @@ const list = computed(() => {
     <SearchField :value="q" placeholder="Search exercises…" @change="q = $event" />
 
     <div class="-mx-[18px] flex gap-2 overflow-x-auto px-[18px] pb-1 pt-[13px]">
-      <Chip
-        v-for="f in FILTERS"
-        :key="f.key"
-        :label="f.label"
-        :active="filter.key === f.key"
-        @click="filter = f"
-      />
+      <Chip v-for="f in FILTERS" :key="f.key" :label="f.label" :active="filter.key === f.key" @click="filter = f" />
     </div>
 
     <div class="my-3">

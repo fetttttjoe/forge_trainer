@@ -40,7 +40,10 @@ describe('JsonDataTransfer.parse', () => {
 describe('mergeSnapshots', () => {
   it('merges by id with the incoming winning', () => {
     const current = snap({
-      plans: [{ id: 'p1', name: 'Old', days: [] }, { id: 'p2', name: 'Keep', days: [] }],
+      plans: [
+        { id: 'p1', name: 'Old', days: [] },
+        { id: 'p2', name: 'Keep', days: [] },
+      ],
     })
     const incoming = snap({
       theme: 'dark',

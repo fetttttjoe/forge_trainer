@@ -143,13 +143,27 @@ async function startToday() {
       @click="startRepeat"
     >
       <div class="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[10px] bg-surface-2 text-accent">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5" /><path d="M3.5 9a9 9 0 1 0 2-3.5L3 8" /></svg>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 3v5h5" />
+          <path d="M3.5 9a9 9 0 1 0 2-3.5L3 8" />
+        </svg>
       </div>
       <div class="min-w-0 flex-1">
         <div class="truncate text-[13.5px] font-bold">Repeat last: {{ repeat.day.label }}</div>
         <div class="text-[11.5px] text-ink-3">{{ repeat.plan.name }} · {{ repeat.when }}</div>
       </div>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="shrink-0 text-ink-3"><path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" /></svg>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="shrink-0 text-ink-3">
+        <path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" />
+      </svg>
     </button>
 
     <!-- Stats -->
@@ -169,7 +183,18 @@ async function startToday() {
           @click="router.push(paths.calendar)"
         >
           Calendar
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 6l6 6-6 6" />
+          </svg>
         </button>
       </div>
       <div class="flex justify-between gap-[6px]">
@@ -194,7 +219,11 @@ async function startToday() {
     <!-- Recent PRs -->
     <div class="mt-4 flex items-center justify-between px-[2px] pb-[2px]">
       <span class="text-[13px] font-bold tracking-[0.02em]">Recent personal records</span>
-      <button type="button" class="cursor-pointer border-none bg-transparent text-[12px] font-bold text-accent" @click="router.push(paths.progress)">
+      <button
+        type="button"
+        class="cursor-pointer border-none bg-transparent text-[12px] font-bold text-accent"
+        @click="router.push(paths.progress)"
+      >
         See all
       </button>
     </div>
@@ -204,7 +233,9 @@ async function startToday() {
         :key="i"
         class="flex items-center gap-3 rounded-[15px] border border-line bg-surface px-[14px] py-[12px] shadow-card"
       >
-        <div class="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-[color-mix(in_srgb,var(--good)_14%,transparent)] text-[15px] text-good">
+        <div
+          class="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-[color-mix(in_srgb,var(--good)_14%,transparent)] text-[15px] text-good"
+        >
           {{ pr.icon }}
         </div>
         <div class="min-w-0 flex-1">
@@ -226,14 +257,31 @@ async function startToday() {
       @click="router.push(paths.coach)"
     >
       <div class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[11px] bg-surface-2">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></svg>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--accent)"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8v4l3 2" />
+        </svg>
       </div>
       <div class="flex-1">
         <div class="flex items-center gap-[7px]">
           <span class="text-[14px] font-bold">Training balance</span>
-          <span class="rounded-[5px] bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] px-[6px] py-[2px] text-[9px] font-extrabold tracking-[0.05em] text-accent">SOON</span>
+          <span
+            class="rounded-[5px] bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] px-[6px] py-[2px] text-[9px] font-extrabold tracking-[0.05em] text-accent"
+            >SOON</span
+          >
         </div>
-        <div class="mt-[2px] text-[12px] text-ink-3">{{ lowGroup }} is your least-trained area right now. Preview the coach →</div>
+        <div class="mt-[2px] text-[12px] text-ink-3">
+          {{ lowGroup }} is your least-trained area right now. Preview the coach →
+        </div>
       </div>
     </button>
   </div>

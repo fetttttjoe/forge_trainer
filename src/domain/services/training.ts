@@ -40,13 +40,24 @@ export function allExercises(builtins: Exercise[], custom: Exercise[]): Exercise
 export function guessGroups(muscle: string): MuscleGroup[] {
   const m = (muscle || '').toLowerCase()
   const map: [string, MuscleGroup][] = [
-    ['finger', Muscle.Fingers], ['forearm', Muscle.Fingers],
-    ['leg', Muscle.Legs], ['quad', Muscle.Legs], ['ham', Muscle.Legs], ['glute', Muscle.Legs], ['calf', Muscle.Legs],
-    ['chest', Muscle.Chest], ['pec', Muscle.Chest],
-    ['back', Muscle.Back], ['lat', Muscle.Back],
-    ['shoulder', Muscle.Shoulders], ['delt', Muscle.Shoulders],
-    ['bicep', Muscle.Arms], ['tricep', Muscle.Arms], ['arm', Muscle.Arms],
-    ['core', Muscle.Core], ['ab', Muscle.Core],
+    ['finger', Muscle.Fingers],
+    ['forearm', Muscle.Fingers],
+    ['leg', Muscle.Legs],
+    ['quad', Muscle.Legs],
+    ['ham', Muscle.Legs],
+    ['glute', Muscle.Legs],
+    ['calf', Muscle.Legs],
+    ['chest', Muscle.Chest],
+    ['pec', Muscle.Chest],
+    ['back', Muscle.Back],
+    ['lat', Muscle.Back],
+    ['shoulder', Muscle.Shoulders],
+    ['delt', Muscle.Shoulders],
+    ['bicep', Muscle.Arms],
+    ['tricep', Muscle.Arms],
+    ['arm', Muscle.Arms],
+    ['core', Muscle.Core],
+    ['ab', Muscle.Core],
   ]
   for (const [k, g] of map) if (m.includes(k)) return [g]
   return []
@@ -294,10 +305,7 @@ export interface ProgressStats {
 }
 
 /** Per-exercise progress series + bests, for the Progress chart. */
-export function progressStats(
-  history: HistorySession[],
-  exId: string,
-): ProgressStats {
+export function progressStats(history: HistorySession[], exId: string): ProgressStats {
   const sessions = history
     .filter((h) => h.entries.some((e) => e.exId === exId && e.sets.some((x) => x.done)))
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -402,10 +410,7 @@ export function weekStrip(history: HistorySession[], now = Date.now()): WeekDot[
 }
 
 /** The day the app suggests on Home: today's scheduled day, else the first plan's first day. */
-export function suggestedDay(
-  plans: Plan[],
-  now = Date.now(),
-): { plan: Plan; day: PlanDay; scheduled: boolean } | null {
+export function suggestedDay(plans: Plan[], now = Date.now()): { plan: Plan; day: PlanDay; scheduled: boolean } | null {
   const wd = new Date(now).getDay()
   for (const p of plans)
     for (const d of p.days) if (d.weekday === wd && d.entries.length) return { plan: p, day: d, scheduled: true }

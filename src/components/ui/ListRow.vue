@@ -50,7 +50,15 @@ defineEmits<{ click: [] }>()
       v-else-if="action === 'add'"
       class="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] bg-surface-2 text-accent"
     >
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+      <svg
+        width="17"
+        height="17"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        stroke-linecap="round"
+      >
         <path d="M12 5v14M5 12h14" />
       </svg>
     </div>

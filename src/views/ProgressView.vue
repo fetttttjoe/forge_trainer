@@ -53,7 +53,8 @@ const sessionLog = computed(() =>
 // e1RM chart geometry (viewBox 300x118)
 const chart = computed(() => {
   const e1s = stats.value.e1rmSeries
-  if (!e1s.length) return { hasData: false, line: '', area: '', dots: [] as { cx: string; cy: string }[], big: '—', delta: '' }
+  if (!e1s.length)
+    return { hasData: false, line: '', area: '', dots: [] as { cx: string; cy: string }[], big: '—', delta: '' }
   const mn = Math.min(...e1s)
   const mx = Math.max(...e1s)
   const n = e1s.length
@@ -106,10 +107,28 @@ const bests = computed(() => {
       >
         <div
           class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px]"
-          :class="h.complete ? 'bg-[color-mix(in_srgb,var(--good)_14%,transparent)] text-good' : 'bg-[color-mix(in_srgb,var(--warn)_16%,transparent)] text-warn'"
+          :class="
+            h.complete
+              ? 'bg-[color-mix(in_srgb,var(--good)_14%,transparent)] text-good'
+              : 'bg-[color-mix(in_srgb,var(--warn)_16%,transparent)] text-warn'
+          "
         >
-          <svg v-if="h.complete" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4.5 4.5L19 6" /></svg>
-          <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0 0 18z" /></svg>
+          <svg
+            v-if="h.complete"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12l4.5 4.5L19 6" />
+          </svg>
+          <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3a9 9 0 0 0 0 18z" />
+          </svg>
         </div>
         <div class="min-w-0 flex-1">
           <div class="truncate text-[14px] font-bold">{{ h.title }}</div>
@@ -120,10 +139,23 @@ const bests = computed(() => {
             <div class="text-[12px] font-bold text-ink-3">{{ h.when }}</div>
             <div class="mt-[2px] text-[12px] font-bold" :style="{ color: h.feltColor }">{{ h.feltLabel }}</div>
           </div>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--ink-3)"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 6l6 6-6 6" />
+          </svg>
         </div>
       </button>
-      <div v-if="!sessionLog.length" class="rounded-[15px] bg-surface-2 px-4 py-6 text-center text-[13px] text-ink-3">No sessions logged yet.</div>
+      <div v-if="!sessionLog.length" class="rounded-[15px] bg-surface-2 px-4 py-6 text-center text-[13px] text-ink-3">
+        No sessions logged yet.
+      </div>
     </div>
 
     <div v-if="exInHist.length" class="mt-[22px] px-[2px] pb-[2px] text-[13px] font-bold">By exercise</div>
@@ -138,7 +170,9 @@ const bests = computed(() => {
           <div class="mt-px text-[16px] font-extrabold">{{ selName }}</div>
         </div>
         <div class="text-right">
-          <div class="text-[24px] font-extrabold tabular-nums tracking-[-0.02em]">{{ chart.big }}<span class="text-[14px] font-bold text-ink-3"> {{ unit }}</span></div>
+          <div class="text-[24px] font-extrabold tabular-nums tracking-[-0.02em]">
+            {{ chart.big }}<span class="text-[14px] font-bold text-ink-3"> {{ unit }}</span>
+          </div>
           <div class="text-[11px] font-bold text-good">{{ chart.delta }}</div>
         </div>
       </div>
@@ -153,14 +187,41 @@ const bests = computed(() => {
         <line x1="0" y1="70" x2="300" y2="70" stroke="var(--line)" stroke-width="1" />
         <line x1="0" y1="110" x2="300" y2="110" stroke="var(--line)" stroke-width="1" />
         <path :d="chart.area" fill="url(#fg)" />
-        <path :d="chart.line" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
-        <circle v-for="(pt, i) in chart.dots" :key="i" :cx="pt.cx" :cy="pt.cy" r="3.4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2" />
+        <path
+          :d="chart.line"
+          fill="none"
+          stroke="var(--accent)"
+          stroke-width="2.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle
+          v-for="(pt, i) in chart.dots"
+          :key="i"
+          :cx="pt.cx"
+          :cy="pt.cy"
+          r="3.4"
+          fill="var(--accent)"
+          stroke="var(--surface)"
+          stroke-width="2"
+        />
       </svg>
-      <div v-else class="mt-4 rounded-[12px] bg-surface-2 p-5 text-center text-[13px] text-ink-3">Log this exercise a couple times to see your trend.</div>
+      <div v-else class="mt-4 rounded-[12px] bg-surface-2 p-5 text-center text-[13px] text-ink-3">
+        Log this exercise a couple times to see your trend.
+      </div>
       <div class="mt-[14px] flex gap-2">
-        <div class="flex-1 rounded-[12px] bg-surface-2 px-3 py-[10px]"><div class="text-[11px] font-semibold text-ink-3">Best weight</div><div class="text-[16px] font-extrabold tabular-nums">{{ bests.w }}</div></div>
-        <div class="flex-1 rounded-[12px] bg-surface-2 px-3 py-[10px]"><div class="text-[11px] font-semibold text-ink-3">Best reps</div><div class="text-[16px] font-extrabold tabular-nums">{{ bests.r }}</div></div>
-        <div class="flex-1 rounded-[12px] bg-surface-2 px-3 py-[10px]"><div class="text-[11px] font-semibold text-ink-3">Volume</div><div class="text-[16px] font-extrabold tabular-nums">{{ bests.vol }}</div></div>
+        <div class="flex-1 rounded-[12px] bg-surface-2 px-3 py-[10px]">
+          <div class="text-[11px] font-semibold text-ink-3">Best weight</div>
+          <div class="text-[16px] font-extrabold tabular-nums">{{ bests.w }}</div>
+        </div>
+        <div class="flex-1 rounded-[12px] bg-surface-2 px-3 py-[10px]">
+          <div class="text-[11px] font-semibold text-ink-3">Best reps</div>
+          <div class="text-[16px] font-extrabold tabular-nums">{{ bests.r }}</div>
+        </div>
+        <div class="flex-1 rounded-[12px] bg-surface-2 px-3 py-[10px]">
+          <div class="text-[11px] font-semibold text-ink-3">Volume</div>
+          <div class="text-[16px] font-extrabold tabular-nums">{{ bests.vol }}</div>
+        </div>
       </div>
     </div>
 
@@ -168,7 +229,9 @@ const bests = computed(() => {
     <div class="mt-3 rounded-[18px] border border-line bg-surface p-4 shadow-card">
       <div class="mb-3 flex items-center justify-between">
         <span class="text-[13px] font-bold">Volume · weekly</span>
-        <span class="text-[11px] font-semibold text-ink-3">this week: {{ vol(weekly[weekly.length - 1].kg).value }} {{ vol(0).unit }}</span>
+        <span class="text-[11px] font-semibold text-ink-3"
+          >this week: {{ vol(weekly[weekly.length - 1].kg).value }} {{ vol(0).unit }}</span
+        >
       </div>
       <div class="flex h-[86px] items-end gap-[6px]">
         <div
@@ -180,7 +243,9 @@ const bests = computed(() => {
         />
       </div>
       <div class="mt-[6px] flex gap-[6px]">
-        <div v-for="(b, i) in weekly" :key="i" class="flex-1 text-center text-[9px] font-semibold text-ink-3">{{ b.label }}</div>
+        <div v-for="(b, i) in weekly" :key="i" class="flex-1 text-center text-[9px] font-semibold text-ink-3">
+          {{ b.label }}
+        </div>
       </div>
     </div>
 
@@ -193,7 +258,10 @@ const bests = computed(() => {
         <div v-for="b in balance" :key="b.group" class="flex items-center gap-[11px]">
           <span class="w-[66px] shrink-0 text-[12px] font-semibold text-ink-2">{{ b.name }}</span>
           <div class="h-[9px] flex-1 overflow-hidden rounded-full bg-surface-2">
-            <div class="h-full rounded-full" :style="{ width: b.pct + '%', background: b.low ? 'var(--accent)' : 'var(--ink)' }" />
+            <div
+              class="h-full rounded-full"
+              :style="{ width: b.pct + '%', background: b.low ? 'var(--accent)' : 'var(--ink)' }"
+            />
           </div>
           <span class="w-[24px] text-right text-[11px] font-bold tabular-nums text-ink-3">{{ b.count }}</span>
         </div>
@@ -206,7 +274,10 @@ const bests = computed(() => {
         @click="router.push(paths.coach)"
       >
         See the balance coach
-        <span class="rounded-[5px] bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] px-[6px] py-[2px] text-[9px] font-extrabold tracking-[0.05em] text-accent">SOON</span>
+        <span
+          class="rounded-[5px] bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] px-[6px] py-[2px] text-[9px] font-extrabold tracking-[0.05em] text-accent"
+          >SOON</span
+        >
       </button>
     </div>
   </div>

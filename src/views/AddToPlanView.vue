@@ -37,7 +37,9 @@ async function add(planId: string, dayId: string) {
     </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
-      <div class="mb-[14px] text-[13px] text-ink-3">Add <b class="text-ink">{{ exName }}</b> to a day:</div>
+      <div class="mb-[14px] text-[13px] text-ink-3">
+        Add <b class="text-ink">{{ exName }}</b> to a day:
+      </div>
       <div class="flex flex-col gap-2">
         <button
           v-for="r in rows"
@@ -47,17 +49,40 @@ async function add(planId: string, dayId: string) {
           @click="add(r.planId, r.dayId)"
         >
           <div class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] bg-surface-2 text-ink-3">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h11M8 12h11M8 18h11" /></svg>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.9"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M8 6h11M8 12h11M8 18h11" />
+            </svg>
           </div>
           <div class="min-w-0 flex-1">
             <div class="text-[14.5px] font-bold">{{ r.day }}</div>
             <div class="mt-px text-[12px] text-ink-3">{{ r.plan }} · {{ r.count }} exercises</div>
           </div>
           <div class="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-surface-2 text-accent">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
           </div>
         </button>
-        <div v-if="!rows.length" class="rounded-[15px] bg-surface-2 px-4 py-6 text-center text-[13px] text-ink-3">Create a plan first.</div>
+        <div v-if="!rows.length" class="rounded-[15px] bg-surface-2 px-4 py-6 text-center text-[13px] text-ink-3">
+          Create a plan first.
+        </div>
       </div>
     </div>
   </div>

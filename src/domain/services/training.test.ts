@@ -22,8 +22,24 @@ const DAY = 864e5
 const iso = (daysAgo: number, now: number) => new Date(now - daysAgo * DAY).toISOString()
 
 const EX: Record<string, Exercise> = {
-  bench: { id: 'bench', name: 'Bench', muscle: 'Chest', equip: 'Barbell', groups: ['chest'], icon: '💪', instructions: '' },
-  squat: { id: 'squat', name: 'Squat', muscle: 'Quads', equip: 'Barbell', groups: ['legs'], icon: '🦵', instructions: '' },
+  bench: {
+    id: 'bench',
+    name: 'Bench',
+    muscle: 'Chest',
+    equip: 'Barbell',
+    groups: ['chest'],
+    icon: '💪',
+    instructions: '',
+  },
+  squat: {
+    id: 'squat',
+    name: 'Squat',
+    muscle: 'Quads',
+    equip: 'Barbell',
+    groups: ['legs'],
+    icon: '🦵',
+    instructions: '',
+  },
 }
 const exOf = (id: string) => EX[id]
 
@@ -43,7 +59,10 @@ function hist(now: number): HistorySession[] {
   return [
     mk(0, 'bench', [[80, 5, 1]]),
     mk(2, 'bench', [[70, 5, 1]]),
-    mk(5, 'bench', [[75, 5, 1], [60, 5, 0]]),
+    mk(5, 'bench', [
+      [75, 5, 1],
+      [60, 5, 0],
+    ]),
   ]
 }
 
@@ -228,11 +247,34 @@ describe('recountSession', () => {
   it('recomputes counters and completeness after an edit', () => {
     const rec = sessionRecord(
       {
-        planId: 'p1', planName: 'P', dayId: 'd1', dayLabel: 'D', exIndex: 0, startedAt: Date.now(),
-        entries: [{ exId: 'bench', name: 'Bench', interval: false, rest: 90, reps: 5, prev: null, work: 7, workRest: 3, rounds: 6,
-          sets: [{ weight: 80, reps: 5, done: true }, { weight: 80, reps: 5, done: false }] }],
+        planId: 'p1',
+        planName: 'P',
+        dayId: 'd1',
+        dayLabel: 'D',
+        exIndex: 0,
+        startedAt: Date.now(),
+        entries: [
+          {
+            exId: 'bench',
+            name: 'Bench',
+            interval: false,
+            rest: 90,
+            reps: 5,
+            prev: null,
+            work: 7,
+            workRest: 3,
+            rounds: 6,
+            sets: [
+              { weight: 80, reps: 5, done: true },
+              { weight: 80, reps: 5, done: false },
+            ],
+          },
+        ],
       },
-      'id1', null, '', Date.now(),
+      'id1',
+      null,
+      '',
+      Date.now(),
     )
     expect(rec.complete).toBe(false)
     rec.entries[0].sets[1].done = true
@@ -246,9 +288,24 @@ describe('weeklyVolume', () => {
   it('buckets lifted kg into Monday-start calendar weeks, current week last', () => {
     const now = new Date(2026, 6, 15, 12, 0).getTime() // Wed Jul 15
     const mk = (daysAgo: number, weight: number): HistorySession => ({
-      id: 'v' + daysAgo, planName: 'P', dayLabel: 'D', date: iso(daysAgo, now), durationMin: 30,
-      complete: true, rating: null, note: '',
-      entries: [{ exId: 'bench', name: 'Bench', sets: [{ weight, reps: 10, done: true }, { weight, reps: 10, done: false }] }],
+      id: 'v' + daysAgo,
+      planName: 'P',
+      dayLabel: 'D',
+      date: iso(daysAgo, now),
+      durationMin: 30,
+      complete: true,
+      rating: null,
+      note: '',
+      entries: [
+        {
+          exId: 'bench',
+          name: 'Bench',
+          sets: [
+            { weight, reps: 10, done: true },
+            { weight, reps: 10, done: false },
+          ],
+        },
+      ],
     })
     const buckets = weeklyVolume([mk(0, 50), mk(1, 30), mk(8, 40)], 3, now)
     expect(buckets).toHaveLength(3)
@@ -267,8 +324,16 @@ describe('lastSessionDay', () => {
     },
   ]
   const rec = (over: Partial<HistorySession>): HistorySession => ({
-    id: 'h1', planName: 'P', dayLabel: 'Push', date: new Date().toISOString(), durationMin: 30,
-    complete: true, rating: null, note: '', entries: [], ...over,
+    id: 'h1',
+    planName: 'P',
+    dayLabel: 'Push',
+    date: new Date().toISOString(),
+    durationMin: 30,
+    complete: true,
+    rating: null,
+    note: '',
+    entries: [],
+    ...over,
   })
 
   it('matches by stored ids', () => {

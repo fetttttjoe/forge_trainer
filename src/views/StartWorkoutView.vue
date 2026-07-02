@@ -47,7 +47,12 @@ async function start(planId: string, dayId: string) {
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
       <div v-if="session" class="mb-[18px]">
         <div class="mb-2 text-[11px] font-bold uppercase tracking-[0.04em] text-ink-3">In progress</div>
-        <PillButton :label="`Resume ${session.dayLabel}`" variant="primary" icon="play" @click="router.push(paths.workout)" />
+        <PillButton
+          :label="`Resume ${session.dayLabel}`"
+          variant="primary"
+          icon="play"
+          @click="router.push(paths.workout)"
+        />
       </div>
 
       <div class="mb-[10px] text-[11px] font-bold uppercase tracking-[0.04em] text-ink-3">Pick any day</div>
@@ -62,18 +67,36 @@ async function start(planId: string, dayId: string) {
             class="flex w-full cursor-pointer items-center gap-3 rounded-[14px] border border-line bg-surface px-[14px] py-[13px] text-left text-ink shadow-card"
             @click="start(p.id, d.id)"
           >
-            <div class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-surface-2 text-accent">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" /></svg>
+            <div
+              class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-surface-2 text-accent"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" />
+              </svg>
             </div>
             <div class="min-w-0 flex-1">
               <div class="text-[14.5px] font-bold">{{ d.label }}</div>
               <div class="mt-px text-[12px] text-ink-3">{{ d.sub }}</div>
             </div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M9 6l6 6-6 6" /></svg>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--ink-3)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="shrink-0"
+            >
+              <path d="M9 6l6 6-6 6" />
+            </svg>
           </button>
         </div>
       </div>
-      <div v-if="!cards.length" class="rounded-[15px] bg-surface-2 px-4 py-6 text-center text-[13px] text-ink-3">Create a plan first.</div>
+      <div v-if="!cards.length" class="rounded-[15px] bg-surface-2 px-4 py-6 text-center text-[13px] text-ink-3">
+        Create a plan first.
+      </div>
     </div>
   </div>
 </template>

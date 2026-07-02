@@ -124,12 +124,18 @@ async function start() {
           Schedule <span class="font-semibold normal-case tracking-normal">· optional</span>
         </div>
         <WeekdayPicker :value="curDay.weekday ?? null" @change="plans.toggleWeekday(props.id, curDay.id, $event)" />
-        <div class="mt-[9px] text-[11px] text-ink-3">Pick a weekday and Home will suggest this day then. Tap again to clear.</div>
+        <div class="mt-[9px] text-[11px] text-ink-3">
+          Pick a weekday and Home will suggest this day then. Tap again to clear.
+        </div>
       </div>
 
       <!-- Entries -->
       <div class="flex flex-col gap-[10px]">
-        <div v-for="e in entries" :key="e.id" class="overflow-hidden rounded-[15px] border border-line bg-surface shadow-card">
+        <div
+          v-for="e in entries"
+          :key="e.id"
+          class="overflow-hidden rounded-[15px] border border-line bg-surface shadow-card"
+        >
           <button
             type="button"
             class="flex w-full cursor-pointer items-center gap-3 border-none bg-transparent px-[14px] py-[13px] text-left text-ink"
@@ -157,18 +163,45 @@ async function start() {
           </button>
           <div v-if="expanded === e.id" class="border-t border-line px-[14px] pb-[14px] pt-px">
             <div v-if="e.lastLogged" class="mt-3 flex items-center gap-[7px] text-[12px] font-semibold text-ink-3">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5" /><path d="M3.5 9a9 9 0 1 0 2-3.5L3 8" /></svg>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 3v5h5" />
+                <path d="M3.5 9a9 9 0 1 0 2-3.5L3 8" />
+              </svg>
               {{ e.lastLogged }}
             </div>
             <div class="mt-3 flex gap-[6px]">
               <div class="min-w-0 flex-1">
-                <Stepper label="Sets" :value="e.sets" @inc="plans.bumpEntry(props.id, curDay.id, e.id, 'sets', 1, 1)" @dec="plans.bumpEntry(props.id, curDay.id, e.id, 'sets', -1, 1)" />
+                <Stepper
+                  label="Sets"
+                  :value="e.sets"
+                  @inc="plans.bumpEntry(props.id, curDay.id, e.id, 'sets', 1, 1)"
+                  @dec="plans.bumpEntry(props.id, curDay.id, e.id, 'sets', -1, 1)"
+                />
               </div>
               <div v-if="!e.interval" class="min-w-0 flex-1">
-                <Stepper label="Reps" :value="e.reps" @inc="plans.bumpEntry(props.id, curDay.id, e.id, 'reps', 1, 1)" @dec="plans.bumpEntry(props.id, curDay.id, e.id, 'reps', -1, 1)" />
+                <Stepper
+                  label="Reps"
+                  :value="e.reps"
+                  @inc="plans.bumpEntry(props.id, curDay.id, e.id, 'reps', 1, 1)"
+                  @dec="plans.bumpEntry(props.id, curDay.id, e.id, 'reps', -1, 1)"
+                />
               </div>
               <div class="min-w-0 flex-1">
-                <Stepper label="Rest s" :value="e.rest" @inc="plans.bumpEntry(props.id, curDay.id, e.id, 'rest', 15, 0)" @dec="plans.bumpEntry(props.id, curDay.id, e.id, 'rest', -15, 0)" />
+                <Stepper
+                  label="Rest s"
+                  :value="e.rest"
+                  @inc="plans.bumpEntry(props.id, curDay.id, e.id, 'rest', 15, 0)"
+                  @dec="plans.bumpEntry(props.id, curDay.id, e.id, 'rest', -15, 0)"
+                />
               </div>
             </div>
             <div class="mt-[10px] flex gap-[6px]">
@@ -177,33 +210,74 @@ async function start() {
                 class="flex w-[44px] cursor-pointer items-center justify-center rounded-[11px] border border-line bg-surface p-[10px] text-ink-2"
                 @click="plans.moveEntry(props.id, curDay.id, e.id, -1)"
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6" /></svg>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M18 15l-6-6-6 6" />
+                </svg>
               </button>
               <button
                 type="button"
                 class="flex w-[44px] cursor-pointer items-center justify-center rounded-[11px] border border-line bg-surface p-[10px] text-ink-2"
                 @click="plans.moveEntry(props.id, curDay.id, e.id, 1)"
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
               </button>
               <button
                 type="button"
                 class="flex flex-1 cursor-pointer items-center justify-center gap-[7px] rounded-[11px] border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] p-[10px] text-[13px] font-bold text-accent"
                 @click="plans.removeEntry(props.id, curDay.id, e.id)"
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />
+                </svg>
                 Remove from day
               </button>
             </div>
           </div>
         </div>
-        <div v-if="!entries.length" class="rounded-[15px] border border-dashed border-line-2 bg-surface px-6 py-6 text-center text-[13px] text-ink-3">
+        <div
+          v-if="!entries.length"
+          class="rounded-[15px] border border-dashed border-line-2 bg-surface px-6 py-6 text-center text-[13px] text-ink-3"
+        >
           No exercises yet. Add one below.
         </div>
       </div>
 
       <div class="mt-3">
-        <PillButton label="Add exercise to this day" variant="primary" icon="plus" @click="router.push(paths.pick(props.id, curDay.id))" />
+        <PillButton
+          label="Add exercise to this day"
+          variant="primary"
+          icon="plus"
+          @click="router.push(paths.pick(props.id, curDay.id))"
+        />
       </div>
       <div class="mt-[18px] text-center text-[11px] text-ink-3">Changes save automatically to this device</div>
       <button
@@ -212,7 +286,18 @@ async function start() {
         :class="delArmed ? 'text-accent' : 'text-ink-3'"
         @click="delTap"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.9"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />
+        </svg>
         {{ delArmed ? 'Tap again to delete' : 'Delete plan' }}
       </button>
     </div>

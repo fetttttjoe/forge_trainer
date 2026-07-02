@@ -24,8 +24,7 @@ const ICONS: Record<string, Def> = {
     sw: 1.8,
   },
   settings: {
-    inner:
-      '<circle cx="15" cy="7" r="2.4"/><circle cx="9" cy="17" r="2.4"/><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/>',
+    inner: '<circle cx="15" cy="7" r="2.4"/><circle cx="9" cy="17" r="2.4"/><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/>',
     sw: 1.8,
   },
   calendar: {

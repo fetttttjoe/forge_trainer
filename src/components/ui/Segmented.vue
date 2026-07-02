@@ -5,9 +5,7 @@ type Option = string | { label: string; value: string }
 const props = defineProps<{ options: Option[]; value: string }>()
 defineEmits<{ change: [value: string] }>()
 
-const items = computed(() =>
-  props.options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)),
-)
+const items = computed(() => props.options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)))
 </script>
 
 <template>

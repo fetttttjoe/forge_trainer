@@ -12,12 +12,7 @@ import {
   DexieWorkoutRepository,
 } from '@/infrastructure/repositories'
 import type { Clock, DataTransfer, Notifier } from '@/domain/ports'
-import type {
-  ExerciseRepository,
-  PlanRepository,
-  SettingsRepository,
-  WorkoutRepository,
-} from '@/domain/ports'
+import type { ExerciseRepository, PlanRepository, SettingsRepository, WorkoutRepository } from '@/domain/ports'
 
 export interface Container {
   exercises: ExerciseRepository
