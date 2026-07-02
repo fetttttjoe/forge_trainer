@@ -4,6 +4,7 @@
 
 import type {
   Exercise,
+  FeltKey,
   HistorySession,
   MuscleGroup,
   Plan,
@@ -13,7 +14,7 @@ import type {
   SessionEntry,
   WorkoutSession,
 } from '../types'
-import { GROUPS } from '../types'
+import { GROUPS, Muscle } from '../types'
 
 const DAY_MS = 864e5
 
@@ -39,21 +40,32 @@ export function allExercises(builtins: Exercise[], custom: Exercise[]): Exercise
 export function guessGroups(muscle: string): MuscleGroup[] {
   const m = (muscle || '').toLowerCase()
   const map: [string, MuscleGroup][] = [
-    ['finger', 'fingers'], ['forearm', 'fingers'],
-    ['leg', 'legs'], ['quad', 'legs'], ['ham', 'legs'], ['glute', 'legs'], ['calf', 'legs'],
-    ['chest', 'chest'], ['pec', 'chest'],
-    ['back', 'back'], ['lat', 'back'],
-    ['shoulder', 'shoulders'], ['delt', 'shoulders'],
-    ['bicep', 'arms'], ['tricep', 'arms'], ['arm', 'arms'],
-    ['core', 'core'], ['ab', 'core'],
+    ['finger', Muscle.Fingers], ['forearm', Muscle.Fingers],
+    ['leg', Muscle.Legs], ['quad', Muscle.Legs], ['ham', Muscle.Legs], ['glute', Muscle.Legs], ['calf', Muscle.Legs],
+    ['chest', Muscle.Chest], ['pec', Muscle.Chest],
+    ['back', Muscle.Back], ['lat', Muscle.Back],
+    ['shoulder', Muscle.Shoulders], ['delt', Muscle.Shoulders],
+    ['bicep', Muscle.Arms], ['tricep', Muscle.Arms], ['arm', Muscle.Arms],
+    ['core', Muscle.Core], ['ab', Muscle.Core],
   ]
   for (const [k, g] of map) if (m.includes(k)) return [g]
   return []
 }
 
-/** Lookup by id; falls back to the first exercise so callers never crash on a stale id. */
+/** Placeholder when an id no longer resolves (e.g. a deleted custom exercise still in a plan). */
+const MISSING_EXERCISE: Exercise = {
+  id: '',
+  name: 'Deleted exercise',
+  muscle: '—',
+  equip: '—',
+  groups: [],
+  icon: '❓',
+  instructions: '',
+}
+
+/** Lookup by id; stale ids get an honest "deleted" stub instead of silently showing another exercise. */
 export function exerciseById(all: Exercise[], id: string): Exercise {
-  return all.find((e) => e.id === id) || all[0]
+  return all.find((e) => e.id === id) || MISSING_EXERCISE
 }
 
 /** Relative-time label, e.g. "Today", "3d ago", "2w ago". */
@@ -203,6 +215,8 @@ export function sessionRecord(
     id,
     planName: s.planName,
     dayLabel: s.dayLabel,
+    planId: s.planId,
+    dayId: s.dayId,
     date: new Date(s.startedAt).toISOString(),
     durationMin: Math.max(1, Math.round((endedAt - s.startedAt) / 60000)),
     complete: total > 0 && done === total,
@@ -218,7 +232,21 @@ export function sessionRecord(
   }
 }
 
+/** Recompute the derived counters (doneSets/totalSets/complete) after editing a record's sets. */
+export function recountSession(h: HistorySession): HistorySession {
+  const total = h.entries.reduce((a, e) => a + e.sets.length, 0)
+  const done = h.entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0)
+  return { ...h, doneSets: done, totalSets: total, complete: total > 0 && done === total }
+}
+
 const within = (iso: string, days: number, now: number) => now - new Date(iso).getTime() < days * DAY_MS
+
+/** Total lifted kg across a session's completed sets. */
+export function sessionVolumeKg(h: HistorySession): number {
+  let v = 0
+  for (const e of h.entries) for (const x of e.sets) if (x.done) v += (x.weight || 0) * (x.reps || 0)
+  return v
+}
 
 export interface BalanceBar {
   group: MuscleGroup
@@ -273,9 +301,9 @@ export function progressStats(
   const sessions = history
     .filter((h) => h.entries.some((e) => e.exId === exId && e.sets.some((x) => x.done)))
     .sort((a, b) => a.date.localeCompare(b.date))
+  // flatMap across ALL entries with this exercise — a day can list the same exercise twice.
   const topOf = (h: HistorySession) => {
-    const e = h.entries.find((x) => x.exId === exId)!
-    const done = e.sets.filter((x) => x.done)
+    const done = h.entries.filter((e) => e.exId === exId).flatMap((e) => e.sets.filter((x) => x.done))
     return done.reduce((m, x) => (e1rm(x) > e1rm(m) ? x : m), done[0])
   }
   const e1rmSeries = sessions.map(topOf).filter(Boolean).map(e1rm)
@@ -295,39 +323,81 @@ export interface Overview {
   weekPRs: number
   /** Percent of last-30-day sessions marked complete. */
   completionPct: number
-  /** Volume over 30 days, in tonnes. */
-  vol30t: number
+  /** Volume over 30 days, in kg (views convert to the display unit). */
+  vol30Kg: number
 }
 
 export function overview(history: HistorySession[], now = Date.now()): Overview {
   const week = history.filter((h) => within(h.date, 7, now))
   const mo30 = history.filter((h) => within(h.date, 30, now))
-  let volKg = 0
-  for (const h of mo30)
-    for (const e of h.entries) for (const x of e.sets) if (x.done) volKg += (x.weight || 0) * (x.reps || 0)
   return {
     weekSessions: week.length,
     weekPRs: computePRs(history).filter((p) => within(p.date, 7, now)).length,
     completionPct: mo30.length ? Math.round((mo30.filter((h) => h.complete).length / mo30.length) * 100) : 0,
-    vol30t: volKg / 1000,
+    vol30Kg: mo30.reduce((a, h) => a + sessionVolumeKg(h), 0),
   }
+}
+
+export interface WeekVolume {
+  /** Short date of the week's Monday, e.g. "6/29". */
+  label: string
+  kg: number
+}
+
+/** Lifted volume per calendar week (Monday-start), oldest first, ending with the current week. */
+export function weeklyVolume(history: HistorySession[], weeks = 8, now = Date.now()): WeekVolume[] {
+  const monday = new Date(now)
+  monday.setHours(0, 0, 0, 0)
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7))
+  return Array.from({ length: weeks }, (_, i) => {
+    const from = new Date(monday)
+    from.setDate(from.getDate() - (weeks - 1 - i) * 7)
+    const to = new Date(from)
+    to.setDate(to.getDate() + 7)
+    const kg = history
+      .filter((h) => {
+        const t = new Date(h.date).getTime()
+        return t >= from.getTime() && t < to.getTime()
+      })
+      .reduce((a, h) => a + sessionVolumeKg(h), 0)
+    return { label: from.toLocaleDateString(undefined, { day: 'numeric', month: 'numeric' }), kg }
+  })
+}
+
+/** The plan day of the most recent session that still exists — for "repeat last workout".
+ * Matches by stored ids, falling back to plan/day names for records logged before ids existed. */
+export function lastSessionDay(
+  history: HistorySession[],
+  plans: Plan[],
+  now = Date.now(),
+): { plan: Plan; day: PlanDay; when: string } | null {
+  for (const h of history) {
+    const p = plans.find((x) => x.id === h.planId) || plans.find((x) => x.name === h.planName)
+    if (!p) continue
+    const d = p.days.find((x) => x.id === h.dayId) || p.days.find((x) => x.label === h.dayLabel)
+    if (d && d.entries.length) return { plan: p, day: d, when: relTime(h.date, now) }
+  }
+  return null
 }
 
 export interface WeekDot {
   label: string
   active: boolean
-  sessionId: string | null
+  /** Every session logged that day (a day can hold several workouts). */
+  sessionIds: string[]
 }
+
+/** One-letter weekday labels, Sunday first (weekStrip + calendar header). */
+export const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const
 
 /** 7-day activity strip ending today. */
 export function weekStrip(history: HistorySession[], now = Date.now()): WeekDot[] {
-  const L = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
   return Array.from({ length: 7 }, (_, i) => {
     const dt = new Date(now)
     dt.setDate(dt.getDate() - (6 - i))
     const key = dayKey(dt)
-    const sess = history.find((h) => dayKey(new Date(h.date)) === key)
-    return { label: L[dt.getDay()], active: !!sess, sessionId: sess ? sess.id : null }
+    const ids = history.filter((h) => dayKey(new Date(h.date)) === key).map((h) => h.id)
+    return { label: DAY_LETTERS[dt.getDay()], active: ids.length > 0, sessionIds: ids }
   })
 }
 
@@ -343,22 +413,32 @@ export function suggestedDay(
   return p ? { plan: p, day: p.days[0], scheduled: false } : null
 }
 
+export interface CalendarDaySession {
+  id: string
+  /** Felt color, or a neutral token when unrated. */
+  color: string
+  complete: boolean
+}
+
+/** What tapping a calendar cell opens. */
+export const CellKind = { Session: 'session', Active: 'active', Day: 'day', Planned: 'planned' } as const
+
 export interface CalendarCell {
   blank: boolean
   day: number
   isToday: boolean
-  hasSession: boolean
-  complete: boolean
+  /** Sessions logged this day, oldest first — a day can hold several workouts. */
+  sessions: CalendarDaySession[]
   /** The active (not yet finished) session was started this day. */
   inProgress: boolean
-  /** Felt color of the session that day, or null. */
-  dotColor: string | null
   /** A future scheduled day with no session yet. */
   showSched: boolean
   target:
-    | { kind: 'session'; sessionId: string }
-    | { kind: 'active' }
-    | { kind: 'planned'; planId: string; dayId: string }
+    | { kind: typeof CellKind.Session; sessionId: string }
+    | { kind: typeof CellKind.Active }
+    /** More than one thing happened this day — open the day sheet. */
+    | { kind: typeof CellKind.Day }
+    | { kind: typeof CellKind.Planned; planId: string; dayId: string }
     | null
 }
 
@@ -373,6 +453,9 @@ export interface CalendarUpcoming {
 export interface CalendarModel {
   cells: CalendarCell[]
   monthLabel: string
+  /** Rendered month, for turning a cell's day number back into a Date. */
+  year: number
+  month: number
   upcoming: CalendarUpcoming[]
 }
 
@@ -381,7 +464,7 @@ export interface CalendarModel {
 export function buildCalendar(
   history: HistorySession[],
   plans: Plan[],
-  feltColor: (felt: string | undefined) => string,
+  feltColor: (felt: FeltKey | undefined) => string,
   offset = 0,
   now = Date.now(),
   active: WorkoutSession | null = null,
@@ -396,8 +479,10 @@ export function buildCalendar(
   const pad = (n: number) => (n < 10 ? '0' : '') + n
   const todayKey = dayKey(new Date(now))
 
+  // History is newest-first; walk it backwards so each day's sessions come out oldest-first.
   const byDate: Record<string, HistorySession[]> = {}
-  for (const h of history) {
+  for (let i = history.length - 1; i >= 0; i--) {
+    const h = history[i]
     const k = dayKey(new Date(h.date))
     ;(byDate[k] = byDate[k] || []).push(h)
   }
@@ -416,39 +501,38 @@ export function buildCalendar(
 
   const cells: CalendarCell[] = []
   for (let i = 0; i < startPad; i++)
-    cells.push({ blank: true, day: 0, isToday: false, hasSession: false, complete: false, inProgress: false, dotColor: null, showSched: false, target: null })
+    cells.push({ blank: true, day: 0, isToday: false, sessions: [], inProgress: false, showSched: false, target: null })
   for (let dn = 1; dn <= daysIn; dn++) {
     const key = year + '-' + pad(month + 1) + '-' + pad(dn)
     const wd = new Date(year, month, dn).getDay()
-    const sess = byDate[key] || []
     const sched = schedByWd[wd] || []
     const isToday = key === todayKey
     const isFuture = key > todayKey
-    const inProgress = key === activeKey && !sess.length
-    let dotColor: string | null = null
-    let complete = false
-    if (sess.length) {
-      const wf = sess.find((x) => x.rating && x.rating.felt) || sess[0]
-      dotColor = wf.rating && wf.rating.felt ? feltColor(wf.rating.felt) : 'var(--ink-3)'
-      complete = sess.some((x) => x.complete)
-    }
-    const showSched = isFuture && sched.length > 0 && !sess.length && !inProgress
+    const inProgress = key === activeKey
+    const sessions: CalendarDaySession[] = (byDate[key] || []).map((h) => ({
+      id: h.id,
+      color: h.rating?.felt ? feltColor(h.rating.felt) : 'var(--ink-3)',
+      complete: h.complete,
+    }))
+    const showSched = isFuture && sched.length > 0 && !sessions.length && !inProgress
+    const items = sessions.length + (inProgress ? 1 : 0)
     cells.push({
       blank: false,
       day: dn,
       isToday,
-      hasSession: sess.length > 0,
-      complete,
+      sessions,
       inProgress,
-      dotColor,
       showSched,
-      target: sess.length
-        ? { kind: 'session', sessionId: sess[0].id }
-        : inProgress
-          ? { kind: 'active' }
-          : sched.length
-            ? { kind: 'planned', planId: sched[0].planId, dayId: sched[0].dayId }
-            : null,
+      target:
+        items > 1
+          ? { kind: CellKind.Day }
+          : sessions.length
+            ? { kind: CellKind.Session, sessionId: sessions[0].id }
+            : inProgress
+              ? { kind: CellKind.Active }
+              : sched.length
+                ? { kind: CellKind.Planned, planId: sched[0].planId, dayId: sched[0].dayId }
+                : null,
     })
   }
 
@@ -473,6 +557,8 @@ export function buildCalendar(
   return {
     cells,
     monthLabel: base.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
+    year,
+    month,
     upcoming,
   }
 }

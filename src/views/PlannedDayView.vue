@@ -8,6 +8,7 @@ import { usePlansStore } from '@/stores/plans'
 import { useLibraryStore } from '@/stores/library'
 import { useWorkoutStore } from '@/stores/workout'
 import { fmtTime } from '@/lib/format'
+import { paths } from '@/router/paths'
 
 const props = defineProps<{ planId: string; dayId: string }>()
 const router = useRouter()
@@ -32,7 +33,7 @@ const list = computed(() =>
 )
 
 async function start() {
-  if (await workout.startDay(props.planId, props.dayId)) router.push('/workout')
+  if (await workout.startDay(props.planId, props.dayId)) router.push(paths.workout)
 }
 </script>
 

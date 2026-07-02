@@ -14,7 +14,7 @@ import type {
   SettingsRepository,
   WorkoutRepository,
 } from '@/domain/ports'
-import { db, metaGet, metaSet } from './db'
+import { META, db, metaGet, metaSet } from './db'
 
 // Plain-clone before storing so Vue proxies never reach IndexedDB's structured clone.
 const raw = <T>(v: T): T => JSON.parse(JSON.stringify(v))
@@ -48,34 +48,31 @@ export class DexieWorkoutRepository implements WorkoutRepository {
   listHistory(): Promise<HistorySession[]> {
     return db.history.orderBy('date').reverse().toArray()
   }
-  async addHistory(session: HistorySession): Promise<void> {
+  async saveHistory(session: HistorySession): Promise<void> {
     await db.history.put(raw(session))
   }
+  async deleteHistory(id: string): Promise<void> {
+    await db.history.delete(id)
+  }
   getActiveSession(): Promise<WorkoutSession | null> {
-    return metaGet<WorkoutSession>('activeSession')
+    return metaGet<WorkoutSession>(META.ActiveSession)
   }
   async setActiveSession(session: WorkoutSession | null): Promise<void> {
-    await metaSet('activeSession', session ? raw(session) : null)
+    await metaSet(META.ActiveSession, session ? raw(session) : null)
   }
 }
 
 export class DexieSettingsRepository implements SettingsRepository {
   getTheme(): Promise<Theme | null> {
-    return metaGet<Theme>('theme')
+    return metaGet<Theme>(META.Theme)
   }
   async setTheme(theme: Theme): Promise<void> {
-    await metaSet('theme', theme)
+    await metaSet(META.Theme, theme)
   }
   getPrefs(): Promise<Prefs | null> {
-    return metaGet<Prefs>('prefs')
+    return metaGet<Prefs>(META.Prefs)
   }
   async setPrefs(prefs: Prefs): Promise<void> {
-    await metaSet('prefs', raw(prefs))
-  }
-  async isSeeded(): Promise<boolean> {
-    return (await metaGet<boolean>('seeded')) === true
-  }
-  async markSeeded(): Promise<void> {
-    await metaSet('seeded', true)
+    await metaSet(META.Prefs, raw(prefs))
   }
 }

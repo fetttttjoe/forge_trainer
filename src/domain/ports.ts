@@ -32,7 +32,9 @@ export interface PlanRepository {
 
 export interface WorkoutRepository {
   listHistory(): Promise<HistorySession[]>
-  addHistory(session: HistorySession): Promise<void>
+  /** Insert or update (history records are editable after the fact). */
+  saveHistory(session: HistorySession): Promise<void>
+  deleteHistory(id: string): Promise<void>
   /** The single in-progress workout, persisted so it survives a reload. */
   getActiveSession(): Promise<WorkoutSession | null>
   setActiveSession(session: WorkoutSession | null): Promise<void>
@@ -43,9 +45,6 @@ export interface SettingsRepository {
   setTheme(theme: Theme): Promise<void>
   getPrefs(): Promise<Prefs | null>
   setPrefs(prefs: Prefs): Promise<void>
-  /** Dataset seed marker — lets first-run seeding run exactly once. */
-  isSeeded(): Promise<boolean>
-  markSeeded(): Promise<void>
 }
 
 /** Serialize/deserialize a full backup. Validation lives here (untrusted input boundary). */

@@ -7,8 +7,10 @@ import PageHeader from '@/components/ui/PageHeader.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import { useWorkoutStore } from '@/stores/workout'
 import { useLibraryStore } from '@/stores/library'
-import { muscleBalance, overview, progressStats, relTime } from '@/domain/services/training'
-import { feltColor, feltLabel, kg } from '@/lib/format'
+import { muscleBalance, overview, progressStats, relTime, weeklyVolume } from '@/domain/services/training'
+import { feltColor, feltLabel } from '@/lib/format'
+import { useUnits } from '@/lib/units'
+import { paths } from '@/router/paths'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,7 +19,13 @@ const lib = useLibraryStore()
 const { history } = storeToRefs(workout)
 
 const showFuture = true
+const { w, unit, toUnit, vol } = useUnits()
 const ov = computed(() => overview(history.value))
+const volStat = computed(() => vol(ov.value.vol30Kg))
+
+// Weekly volume bars (last 8 calendar weeks; current week highlighted)
+const weekly = computed(() => weeklyVolume(history.value))
+const weeklyMax = computed(() => Math.max(1, ...weekly.value.map((b) => b.kg)))
 
 const exInHist = computed(() => [...new Set(history.value.flatMap((h) => h.entries.map((e) => e.exId)))])
 const initial = typeof route.query.ex === 'string' ? route.query.ex : ''
@@ -59,16 +67,19 @@ const chart = computed(() => {
     line,
     area: line + ` L${X(n - 1).toFixed(1)} 118 L${X(0).toFixed(1)} 118 Z`,
     dots,
-    big: Math.round(e1s[e1s.length - 1]).toString(),
-    delta: (dd >= 0 ? '▲ ' : '▼ ') + kg(Math.abs(dd)) + ' kg',
+    big: Math.round(toUnit(e1s[e1s.length - 1])).toString(),
+    delta: (dd >= 0 ? '▲ ' : '▼ ') + w(Math.abs(dd)) + ' ' + unit.value,
   }
 })
 
-const bests = computed(() => ({
-  w: stats.value.bestWeight ? kg(stats.value.bestWeight) + 'kg' : '—',
-  r: stats.value.bestReps ? stats.value.bestReps + '×' : '—',
-  vol: (stats.value.volumeKg / 1000).toFixed(1) + 't',
-}))
+const bests = computed(() => {
+  const v = vol(stats.value.volumeKg)
+  return {
+    w: stats.value.bestWeight ? w(stats.value.bestWeight) + unit.value : '—',
+    r: stats.value.bestReps ? stats.value.bestReps + '×' : '—',
+    vol: v.value + v.unit,
+  }
+})
 </script>
 
 <template>
@@ -78,7 +89,7 @@ const bests = computed(() => ({
     <div class="grid grid-cols-3 gap-[10px]">
       <StatCard :value="ov.weekSessions" unit="sess" label="this week" />
       <StatCard :value="ov.completionPct" unit="%" label="completion" />
-      <StatCard :value="ov.vol30t.toFixed(1)" unit="t" label="vol · 30d" />
+      <StatCard :value="volStat.value" :unit="volStat.unit" label="vol · 30d" />
     </div>
 
     <div class="mt-[18px] mb-2 flex items-center justify-between px-[2px]">
@@ -91,7 +102,7 @@ const bests = computed(() => ({
         :key="h.id"
         type="button"
         class="flex w-full cursor-pointer items-center gap-3 rounded-[15px] border border-line bg-surface px-[14px] py-[12px] text-left text-ink shadow-card"
-        @click="router.push('/session/' + h.id)"
+        @click="router.push(paths.session(h.id))"
       >
         <div
           class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px]"
@@ -127,7 +138,7 @@ const bests = computed(() => ({
           <div class="mt-px text-[16px] font-extrabold">{{ selName }}</div>
         </div>
         <div class="text-right">
-          <div class="text-[24px] font-extrabold tabular-nums tracking-[-0.02em]">{{ chart.big }}<span class="text-[14px] font-bold text-ink-3"> kg</span></div>
+          <div class="text-[24px] font-extrabold tabular-nums tracking-[-0.02em]">{{ chart.big }}<span class="text-[14px] font-bold text-ink-3"> {{ unit }}</span></div>
           <div class="text-[11px] font-bold text-good">{{ chart.delta }}</div>
         </div>
       </div>
@@ -153,6 +164,26 @@ const bests = computed(() => ({
       </div>
     </div>
 
+    <!-- Weekly volume -->
+    <div class="mt-3 rounded-[18px] border border-line bg-surface p-4 shadow-card">
+      <div class="mb-3 flex items-center justify-between">
+        <span class="text-[13px] font-bold">Volume · weekly</span>
+        <span class="text-[11px] font-semibold text-ink-3">this week: {{ vol(weekly[weekly.length - 1].kg).value }} {{ vol(0).unit }}</span>
+      </div>
+      <div class="flex h-[86px] items-end gap-[6px]">
+        <div
+          v-for="(b, i) in weekly"
+          :key="i"
+          class="flex-1 rounded-t-[4px]"
+          :class="i === weekly.length - 1 ? 'bg-accent' : 'bg-ink opacity-[0.55]'"
+          :style="{ height: Math.max(2, Math.round((b.kg / weeklyMax) * 100)) + '%' }"
+        />
+      </div>
+      <div class="mt-[6px] flex gap-[6px]">
+        <div v-for="(b, i) in weekly" :key="i" class="flex-1 text-center text-[9px] font-semibold text-ink-3">{{ b.label }}</div>
+      </div>
+    </div>
+
     <div class="mt-3 rounded-[18px] border border-line bg-surface p-4 shadow-card">
       <div class="mb-[14px] flex items-center justify-between">
         <span class="text-[13px] font-bold">Muscle balance · 30 days</span>
@@ -172,7 +203,7 @@ const bests = computed(() => ({
         v-if="showFuture"
         type="button"
         class="mt-[14px] flex w-full cursor-pointer items-center justify-center gap-[7px] rounded-[12px] border-none bg-surface-2 p-3 text-[13px] font-bold text-ink"
-        @click="router.push('/coach')"
+        @click="router.push(paths.coach)"
       >
         See the balance coach
         <span class="rounded-[5px] bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] px-[6px] py-[2px] text-[9px] font-extrabold tracking-[0.05em] text-accent">SOON</span>

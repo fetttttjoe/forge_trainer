@@ -26,6 +26,14 @@ export class ForgeDB extends Dexie {
 
 export const db = new ForgeDB()
 
+/** Keys of the meta key/value table — the only place these strings exist. */
+export const META = {
+  ActiveSession: 'activeSession',
+  Theme: 'theme',
+  Prefs: 'prefs',
+  Seeded: 'seeded',
+} as const
+
 export async function metaGet<T>(key: string): Promise<T | null> {
   const row = await db.meta.get(key)
   return row ? (row.value as T) : null

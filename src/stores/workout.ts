@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { container } from '@/app/container'
-import { buildSession, sessionRecord } from '@/domain/services/training'
+import { buildSession, recountSession, sessionRecord } from '@/domain/services/training'
 import {
   IDLE_TIMER,
+  TimerMode,
   addTime as tAddTime,
   skip as tSkip,
   startInterval as tStartInterval,
@@ -12,9 +13,9 @@ import {
   togglePause,
   type TimerState,
 } from '@/domain/services/timer'
-import { beep } from '@/infrastructure/sound'
+import { beep, buzz } from '@/infrastructure/sound'
 import { newId } from '@/lib/id'
-import type { FeltKey, HistorySession, Rating, WorkoutSession } from '@/domain/types'
+import { Felt, type FeltKey, type HistorySession, type Rating, type WorkoutSession } from '@/domain/types'
 import { useLibraryStore } from './library'
 import { usePlansStore } from './plans'
 import { useSettingsStore } from './settings'
@@ -35,7 +36,7 @@ export const useWorkoutStore = defineStore('workout', () => {
   // Rate screen
   const pending = ref<PendingSession | null>(null)
   const stars = ref(4)
-  const felt = ref<FeltKey>('solid')
+  const felt = ref<FeltKey>(Felt.Solid)
   const attrs = ref({ strength: 3, form: 4, endurance: 3 })
   const note = ref('')
 
@@ -61,8 +62,21 @@ export const useWorkoutStore = defineStore('workout', () => {
   /** Append a session to history, dated by its start day (see sessionRecord). */
   async function logSession(s: WorkoutSession, rating: Rating | null, noteText: string, endedAt: number) {
     const rec = sessionRecord(s, newId(), rating, noteText, endedAt)
-    await container.workouts.addHistory(rec)
+    await container.workouts.saveHistory(rec)
     history.value = [rec, ...history.value]
+  }
+
+  /** Permanently delete a logged session. */
+  async function removeSession(id: string) {
+    await container.workouts.deleteHistory(id)
+    history.value = history.value.filter((h) => h.id !== id)
+  }
+
+  /** Save an edited history record, recomputing its derived set counters. */
+  async function updateSession(rec: HistorySession) {
+    const fixed = recountSession(rec)
+    await container.workouts.saveHistory(fixed)
+    history.value = history.value.map((h) => (h.id === fixed.id ? fixed : h))
   }
 
   // ---- timer engine -------------------------------------------------------
@@ -76,9 +90,12 @@ export const useWorkoutStore = defineStore('workout', () => {
   }
   function step() {
     if (!timer.value.timerOn) return stopLoop()
-    const r = tTick(timer.value)
+    const r = tTick(timer.value, container.clock.now())
     timer.value = r.state
-    if (r.beep && useSettingsStore().prefs.sound) beep()
+    if (r.beep) {
+      buzz(80)
+      if (useSettingsStore().prefs.sound) beep()
+    }
     if (r.intervalComplete) markIntervalDone()
     if (!timer.value.timerOn) {
       stopLoop()
@@ -92,7 +109,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     container.notifier.cancel()
   }
   function startRestTimer(sec: number) {
-    timer.value = tStartRest(sec)
+    timer.value = tStartRest(sec, container.clock.now())
     runLoop()
     // OS alert as a backstop for when the app is backgrounded during rest.
     container.notifier.scheduleRestEnd(sec)
@@ -100,14 +117,14 @@ export const useWorkoutStore = defineStore('workout', () => {
   function startIntervalTimer() {
     const e = curEntry.value
     if (!e) return
-    timer.value = tStartInterval(e.work || 7, e.workRest || 3, e.rounds || 6)
+    timer.value = tStartInterval(e.work || 7, e.workRest || 3, e.rounds || 6, container.clock.now())
     runLoop()
   }
   function pauseTimer() {
-    timer.value = togglePause(timer.value)
+    timer.value = togglePause(timer.value, container.clock.now())
     if (timer.value.timerOn) {
       runLoop()
-      if (timer.value.mode === 'rest') container.notifier.scheduleRestEnd(timer.value.timeLeft)
+      if (timer.value.mode === TimerMode.Rest) container.notifier.scheduleRestEnd(timer.value.timeLeft)
     } else {
       stopLoop()
       container.notifier.cancel()
@@ -115,7 +132,7 @@ export const useWorkoutStore = defineStore('workout', () => {
   }
   function addTimer() {
     timer.value = tAddTime(timer.value, 15)
-    if (timer.value.mode === 'rest' && timer.value.timerOn)
+    if (timer.value.mode === TimerMode.Rest && timer.value.timerOn)
       container.notifier.scheduleRestEnd(timer.value.timeLeft)
   }
   function skipTimer() {
@@ -151,7 +168,10 @@ export const useWorkoutStore = defineStore('workout', () => {
     const e = curEntry.value
     if (!e) return
     e.sets[i].done = !e.sets[i].done
-    if (e.sets[i].done && !e.interval) startRestTimer(e.rest || 90)
+    if (e.sets[i].done) {
+      buzz(30)
+      if (!e.interval) startRestTimer(e.rest || 90)
+    }
     persistSession()
   }
 
@@ -180,18 +200,16 @@ export const useWorkoutStore = defineStore('workout', () => {
     }
   }
 
-  function nextEx() {
-    if (!session.value) return
-    session.value.exIndex = Math.min(session.value.entries.length - 1, session.value.exIndex + 1)
+  /** Jump to any exercise in the session (clamped). */
+  function goToEx(i: number) {
+    const s = session.value
+    if (!s) return
+    s.exIndex = Math.min(s.entries.length - 1, Math.max(0, i))
     resetTimer()
     persistSession()
   }
-  function prevEx() {
-    if (!session.value) return
-    session.value.exIndex = Math.max(0, session.value.exIndex - 1)
-    resetTimer()
-    persistSession()
-  }
+  const nextEx = () => session.value && goToEx(session.value.exIndex + 1)
+  const prevEx = () => session.value && goToEx(session.value.exIndex - 1)
 
   /** Close out the active session and prepare the rating screen. */
   function finishWorkout() {
@@ -202,7 +220,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     const done = s.entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0)
     pending.value = { ...s, total, done, complete: total > 0 && done === total, endedAt: container.clock.now() }
     stars.value = 4
-    felt.value = 'solid'
+    felt.value = Felt.Solid
     attrs.value = { strength: 3, form: 4, endurance: 3 }
     note.value = ''
   }
@@ -247,6 +265,8 @@ export const useWorkoutStore = defineStore('workout', () => {
     isLast,
     load,
     startDay,
+    removeSession,
+    updateSession,
     toggleSet,
     bumpSet,
     toggleIntervalSet,
@@ -256,6 +276,7 @@ export const useWorkoutStore = defineStore('workout', () => {
     skipTimer,
     startRestTimer,
     resetTimer,
+    goToEx,
     nextEx,
     prevEx,
     finishWorkout,

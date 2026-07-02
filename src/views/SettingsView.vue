@@ -10,7 +10,8 @@ import { useSettingsStore } from '@/stores/settings'
 import { useUiStore } from '@/stores/ui'
 import { exportBackup, importBackup, resetAllData } from '@/app/data'
 import { fmtTime } from '@/lib/format'
-import type { Theme } from '@/domain/types'
+import { useTapConfirm } from '@/lib/confirm'
+import { Theme, Unit } from '@/domain/types'
 
 const router = useRouter()
 const settings = useSettingsStore()
@@ -18,9 +19,16 @@ const ui = useUiStore()
 const { theme, prefs } = storeToRefs(settings)
 
 const themeOptions = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
+  { value: Theme.Light, label: 'Light' },
+  { value: Theme.Dark, label: 'Dark' },
 ]
+
+const unitOptions = [
+  { value: Unit.Kg, label: 'kg' },
+  { value: Unit.Lb, label: 'lb' },
+]
+
+const { armed: resetArmed, tap: resetTap } = useTapConfirm(resetAllData)
 </script>
 
 <template>
@@ -65,6 +73,13 @@ const themeOptions = [
         </div>
         <div class="flex items-center justify-between rounded-[16px] border border-line bg-surface px-4 py-[14px] shadow-card">
           <div>
+            <div class="text-[14px] font-semibold">Units</div>
+            <div class="mt-px text-[12px] text-ink-3">Weights are shown in this unit</div>
+          </div>
+          <div class="w-[132px]"><Segmented :options="unitOptions" :value="prefs.unit" @change="settings.setPref('unit', $event as Unit)" /></div>
+        </div>
+        <div class="flex items-center justify-between rounded-[16px] border border-line bg-surface px-4 py-[14px] shadow-card">
+          <div>
             <div class="text-[14px] font-semibold">Default rest</div>
             <div class="mt-px text-[12px] text-ink-3">For newly added exercises</div>
           </div>
@@ -86,9 +101,12 @@ const themeOptions = [
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
           <div class="flex-1"><div class="text-[14px] font-bold">Import data</div><div class="text-[12px] text-ink-3">Merge a backup file</div></div>
         </button>
-        <button type="button" class="flex w-full cursor-pointer items-center gap-3 rounded-[16px] border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-surface px-4 py-[14px] text-left text-accent shadow-card" @click="resetAllData">
+        <button type="button" class="flex w-full cursor-pointer items-center gap-3 rounded-[16px] border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-surface px-4 py-[14px] text-left text-accent shadow-card" @click="resetTap">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
-          <div class="flex-1"><div class="text-[14px] font-bold">Reset all data</div><div class="text-[12px]" style="color: color-mix(in srgb, var(--accent) 75%, var(--ink-2))">Back to the demo library &amp; plans</div></div>
+          <div class="flex-1">
+            <div class="text-[14px] font-bold">{{ resetArmed ? 'Tap again to reset' : 'Reset all data' }}</div>
+            <div class="text-[12px]" style="color: color-mix(in srgb, var(--accent) 75%, var(--ink-2))">{{ resetArmed ? 'This deletes your plans & history' : 'Back to the demo library & plans' }}</div>
+          </div>
         </button>
       </div>
 

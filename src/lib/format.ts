@@ -13,10 +13,10 @@ export function kg(w: number): string {
   return (Math.round(w * 10) / 10).toString()
 }
 
-export function feltLabel(felt: string | undefined | null): string {
-  return felt && FELT[felt as FeltKey] ? FELT[felt as FeltKey][0] : '—'
+export function feltLabel(felt: FeltKey | undefined | null): string {
+  return felt ? FELT[felt][0] : '—'
 }
 
-export function feltColor(felt: string | undefined | null): string {
-  return felt && FELT[felt as FeltKey] ? FELT[felt as FeltKey][1] : 'var(--ink-3)'
+export function feltColor(felt: FeltKey | undefined | null): string {
+  return felt ? FELT[felt][1] : 'var(--ink-3)'
 }

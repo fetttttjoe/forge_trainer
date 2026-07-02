@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import type { FeltKey } from '@/domain/types'
+import { FELT, FELT_KEYS, type FeltKey } from '@/domain/types'
 
 defineProps<{ value: FeltKey }>()
 defineEmits<{ change: [value: FeltKey] }>()
 
-const FELT: [FeltKey, string, string][] = [
-  ['easy', 'Easy', '#17936B'],
-  ['solid', 'Solid', 'var(--accent)'],
-  ['grindy', 'Grindy', '#C9721F'],
-  ['failed', 'Failed', '#C0392B'],
-]
+const OPTIONS = FELT_KEYS.map((key) => ({ key, label: FELT[key][0], color: FELT[key][1] }))
 </script>
 
 <template>
   <div class="flex gap-2">
     <button
-      v-for="[key, label, color] in FELT"
+      v-for="{ key, label, color } in OPTIONS"
       :key="key"
       type="button"
       class="flex-1 cursor-pointer rounded-[13px] border-[1.5px] px-[4px] py-[13px] text-[13px] font-bold"

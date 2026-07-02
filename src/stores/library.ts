@@ -4,7 +4,7 @@ import { container } from '@/app/container'
 import { BUILTIN, loadCatalog } from '@/infrastructure/dataset'
 import { exerciseById, guessGroups } from '@/domain/services/training'
 import { newId } from '@/lib/id'
-import type { Exercise, ExerciseForm } from '@/domain/types'
+import { Track, type Exercise, type ExerciseForm } from '@/domain/types'
 
 export const useLibraryStore = defineStore('library', () => {
   const custom = ref<Exercise[]>([])
@@ -33,7 +33,7 @@ export const useLibraryStore = defineStore('library', () => {
       equip: form.equip.trim() || '—',
       groups: guessGroups(form.muscle),
       custom: true,
-      interval: form.track === 'interval',
+      interval: form.track === Track.Interval,
       track: form.track,
       icon: '⭐',
       instructions: form.instr.trim(),

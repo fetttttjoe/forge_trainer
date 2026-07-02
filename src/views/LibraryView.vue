@@ -8,33 +8,36 @@ import PillButton from '@/components/ui/PillButton.vue'
 import SearchField from '@/components/ui/SearchField.vue'
 import { useLibraryStore } from '@/stores/library'
 import { exportBackup, importBackup } from '@/app/data'
-import type { Exercise } from '@/domain/types'
+import { GROUPS, Muscle, type Exercise, type MuscleGroup } from '@/domain/types'
+import { paths } from '@/router/paths'
 
 const router = useRouter()
 const lib = useLibraryStore()
 
 const q = ref('')
-const filter = ref('all')
-const FILTERS: [string, string][] = [
-  ['all', 'All'],
-  ['custom', 'Mine'],
-  ['fingers', 'Fingers'],
-  ['back', 'Back'],
-  ['legs', 'Legs'],
-  ['chest', 'Chest'],
-  ['core', 'Core'],
-]
 
-function matches(e: Exercise): boolean {
-  const f = filter.value
-  const query = q.value.trim().toLowerCase()
-  if (f === 'custom' && !e.custom) return false
-  if (f !== 'all' && f !== 'custom' && !(e.groups || []).includes(f as Exercise['groups'][number])) return false
-  if (query && !e.name.toLowerCase().includes(query)) return false
-  return true
+// Each filter carries its own predicate — no string comparisons to dispatch on.
+interface Filter {
+  key: string
+  label: string
+  match: (e: Exercise) => boolean
 }
+const groupFilter = (g: MuscleGroup): Filter => ({
+  key: g,
+  label: GROUPS.find(([k]) => k === g)![1],
+  match: (e) => (e.groups || []).includes(g),
+})
+const FILTERS: Filter[] = [
+  { key: 'all', label: 'All', match: () => true },
+  { key: 'mine', label: 'Mine', match: (e) => !!e.custom },
+  ...[Muscle.Fingers, Muscle.Back, Muscle.Legs, Muscle.Chest, Muscle.Core].map(groupFilter),
+]
+const filter = ref(FILTERS[0])
 
-const list = computed(() => lib.all.filter(matches))
+const list = computed(() => {
+  const query = q.value.trim().toLowerCase()
+  return lib.all.filter((e) => filter.value.match(e) && (!query || e.name.toLowerCase().includes(query)))
+})
 </script>
 
 <template>
@@ -51,16 +54,16 @@ const list = computed(() => lib.all.filter(matches))
 
     <div class="-mx-[18px] flex gap-2 overflow-x-auto px-[18px] pb-1 pt-[13px]">
       <Chip
-        v-for="[k, label] in FILTERS"
-        :key="k"
-        :label="label"
-        :active="filter === k"
-        @click="filter = k"
+        v-for="f in FILTERS"
+        :key="f.key"
+        :label="f.label"
+        :active="filter.key === f.key"
+        @click="filter = f"
       />
     </div>
 
     <div class="my-3">
-      <PillButton label="Create your own exercise" variant="soft" icon="plus" @click="router.push('/create')" />
+      <PillButton label="Create your own exercise" variant="soft" icon="plus" @click="router.push(paths.create)" />
     </div>
 
     <div class="flex flex-col gap-2">
@@ -71,7 +74,7 @@ const list = computed(() => lib.all.filter(matches))
         :title="e.name"
         :subtitle="e.muscle + ' · ' + e.equip"
         :badge="e.custom ? 'MINE' : ''"
-        @click="router.push('/exercise/' + e.id)"
+        @click="router.push(paths.exercise(e.id))"
       />
       <div v-if="!list.length" class="rounded-[15px] bg-surface-2 px-4 py-6 text-center text-[13px] text-ink-3">
         No exercises match.

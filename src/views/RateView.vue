@@ -10,12 +10,13 @@ import FeltPicker from '@/components/ui/FeltPicker.vue'
 import AttrRow from '@/components/ui/AttrRow.vue'
 import Textarea from '@/components/ui/Textarea.vue'
 import { useWorkoutStore } from '@/stores/workout'
+import { paths } from '@/router/paths'
 
 const router = useRouter()
 const workout = useWorkoutStore()
 const { pending, stars, felt, attrs, note } = storeToRefs(workout)
 
-watch(pending, (p) => !p && router.replace('/'), { immediate: true })
+watch(pending, (p) => !p && router.replace(paths.home), { immediate: true })
 
 const sub = computed(() =>
   pending.value
@@ -30,11 +31,11 @@ const ATTRS: [keyof typeof attrs.value, string][] = [
 
 async function save() {
   await workout.saveRate()
-  router.push('/progress')
+  router.push(paths.progress)
 }
 async function skip() {
   await workout.skipRate()
-  router.push('/progress')
+  router.push(paths.progress)
 }
 </script>
 

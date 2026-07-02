@@ -2,13 +2,19 @@
 // decides what the next tick looks like, so the branching (rest vs interval work/rest × rounds)
 // is testable without wall-clock time.
 
-export type TimerMode = 'rest' | 'interval'
-export type IntervalPhase = 'work' | 'rest'
+export const TimerMode = { Rest: 'rest', Interval: 'interval' } as const
+export type TimerMode = (typeof TimerMode)[keyof typeof TimerMode]
+
+export const IntervalPhase = { Work: 'work', Rest: 'rest' } as const
+export type IntervalPhase = (typeof IntervalPhase)[keyof typeof IntervalPhase]
 
 export interface TimerState {
   timeLeft: number
   timerTotal: number
   timerOn: boolean
+  /** Epoch ms when the running phase hits zero (0 while idle/paused). Anchoring to the wall
+   * clock means background tick-throttling on mobile can't drift the countdown. */
+  endsAt: number
   mode: TimerMode
   phase: IntervalPhase
   rep: number
@@ -21,8 +27,9 @@ export const IDLE_TIMER: TimerState = {
   timeLeft: 0,
   timerTotal: 0,
   timerOn: false,
-  mode: 'rest',
-  phase: 'work',
+  endsAt: 0,
+  mode: TimerMode.Rest,
+  phase: IntervalPhase.Work,
   rep: 1,
   work: 7,
   workRest: 3,
@@ -30,18 +37,19 @@ export const IDLE_TIMER: TimerState = {
 }
 
 /** Start a rest countdown. */
-export function startRest(sec: number): TimerState {
-  return { ...IDLE_TIMER, timeLeft: sec, timerTotal: sec, timerOn: true, mode: 'rest' }
+export function startRest(sec: number, now = Date.now()): TimerState {
+  return { ...IDLE_TIMER, timeLeft: sec, timerTotal: sec, timerOn: true, endsAt: now + sec * 1000, mode: TimerMode.Rest }
 }
 
 /** Start an interval (hang/rest × rounds) sequence, beginning with a work phase. */
-export function startInterval(work: number, workRest: number, rounds: number): TimerState {
+export function startInterval(work: number, workRest: number, rounds: number, now = Date.now()): TimerState {
   return {
     timeLeft: work,
     timerTotal: work,
     timerOn: true,
-    mode: 'interval',
-    phase: 'work',
+    endsAt: now + work * 1000,
+    mode: TimerMode.Interval,
+    phase: IntervalPhase.Work,
     rep: 1,
     work,
     workRest,
@@ -57,41 +65,50 @@ export interface TickResult {
   intervalComplete: boolean
 }
 
-/** One second elapsed. Returns the next state plus side-effect flags for the store to act on. */
-export function tick(s: TimerState): TickResult {
+/** A tick elapsed. Recomputes the remaining time from the wall clock (so a backgrounded app
+ * catches up on resume) and returns the next state plus side-effect flags for the store. */
+export function tick(s: TimerState, now = Date.now()): TickResult {
   if (!s.timerOn) return { state: s, beep: false, intervalComplete: false }
-  const t = s.timeLeft - 1
+  const t = Math.ceil((s.endsAt - now) / 1000)
   if (t > 0) return { state: { ...s, timeLeft: t }, beep: false, intervalComplete: false }
 
   // Reached zero.
-  if (s.mode === 'interval') {
-    if (s.phase === 'work')
+  if (s.mode === TimerMode.Interval) {
+    // ponytail: catch-up after a long background advances one phase per tick, not all missed ones.
+    if (s.phase === IntervalPhase.Work)
       return {
-        state: { ...s, phase: 'rest', timeLeft: s.workRest, timerTotal: s.workRest },
+        state: { ...s, phase: IntervalPhase.Rest, timeLeft: s.workRest, timerTotal: s.workRest, endsAt: now + s.workRest * 1000 },
         beep: true,
         intervalComplete: false,
       }
     if (s.rep >= s.rounds)
-      return { state: { ...s, timerOn: false, timeLeft: 0 }, beep: true, intervalComplete: true }
+      return { state: { ...s, timerOn: false, timeLeft: 0, endsAt: 0 }, beep: true, intervalComplete: true }
     return {
-      state: { ...s, phase: 'work', rep: s.rep + 1, timeLeft: s.work, timerTotal: s.work },
+      state: { ...s, phase: IntervalPhase.Work, rep: s.rep + 1, timeLeft: s.work, timerTotal: s.work, endsAt: now + s.work * 1000 },
       beep: true,
       intervalComplete: false,
     }
   }
-  return { state: { ...s, timerOn: false, timeLeft: 0 }, beep: true, intervalComplete: false }
+  return { state: { ...s, timerOn: false, timeLeft: 0, endsAt: 0 }, beep: true, intervalComplete: false }
 }
 
 export function addTime(s: TimerState, sec: number): TimerState {
-  return { ...s, timeLeft: s.timeLeft + sec, timerTotal: s.timerTotal + sec }
+  return {
+    ...s,
+    timeLeft: s.timeLeft + sec,
+    timerTotal: s.timerTotal + sec,
+    endsAt: s.endsAt ? s.endsAt + sec * 1000 : 0,
+  }
 }
 
-export function togglePause(s: TimerState): TimerState {
-  return { ...s, timerOn: !s.timerOn }
+export function togglePause(s: TimerState, now = Date.now()): TimerState {
+  return s.timerOn
+    ? { ...s, timerOn: false, endsAt: 0 }
+    : { ...s, timerOn: true, endsAt: now + s.timeLeft * 1000 }
 }
 
 export function skip(s: TimerState): TimerState {
-  return { ...s, timerOn: false, timeLeft: 0 }
+  return { ...s, timerOn: false, timeLeft: 0, endsAt: 0 }
 }
 
 /** Ring dash-offset for the interval progress circle (circumference 339.292). */

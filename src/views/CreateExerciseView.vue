@@ -10,7 +10,8 @@ import Stepper from '@/components/ui/Stepper.vue'
 import { useLibraryStore } from '@/stores/library'
 import { usePlansStore } from '@/stores/plans'
 import { useUiStore } from '@/stores/ui'
-import { BLANK_FORM, type ExerciseForm, type TrackType } from '@/domain/types'
+import { BLANK_FORM, Track, type ExerciseForm, type TrackType } from '@/domain/types'
+import { paths } from '@/router/paths'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,25 +26,19 @@ const hasTarget = !!(planId && dayId)
 const form = ref<ExerciseForm>({ ...BLANK_FORM })
 
 const trackOptions = [
-  { value: 'weight', label: 'Weight × reps' },
-  { value: 'interval', label: 'Interval / hold' },
-  { value: 'distance', label: 'Distance' },
+  { value: Track.Weight, label: 'Weight × reps' },
+  { value: Track.Interval, label: 'Interval / hold' },
 ]
 
 type NumField = 'sets' | 'reps' | 'rest' | 'work' | 'workRest' | 'rounds'
 const cfg = computed<[NumField, string, number, number][]>(() => {
-  if (form.value.track === 'interval')
+  if (form.value.track === Track.Interval)
     return [
       ['work', 'Hang s', 1, 1],
       ['workRest', 'Rest s', 1, 1],
       ['rounds', 'Rounds', 1, 1],
       ['sets', 'Sets', 1, 1],
       ['rest', 'Set rest', 15, 0],
-    ]
-  if (form.value.track === 'distance')
-    return [
-      ['sets', 'Sets', 1, 1],
-      ['rest', 'Rest s', 15, 0],
     ]
   return [
     ['sets', 'Sets', 1, 1],
@@ -61,15 +56,15 @@ async function save() {
   if (hasTarget) {
     await plans.addEntry(planId!, dayId!, ex.id)
     ui.toast('Created ' + ex.name)
-    router.push('/plan/' + planId)
+    router.push(paths.plan(planId!))
   } else {
     ui.toast('Created ' + ex.name)
-    router.push('/library')
+    router.push(paths.library)
   }
 }
 function cancel() {
   if (hasTarget) router.back()
-  else router.push('/library')
+  else router.push(paths.library)
 }
 </script>
 

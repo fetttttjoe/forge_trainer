@@ -10,13 +10,17 @@ import { useLibraryStore } from '@/stores/library'
 import { useUiStore } from '@/stores/ui'
 import {
   computePRs,
+  lastSessionDay,
   muscleBalance,
   overview,
   streak,
   suggestedDay,
   weekStrip,
+  type WeekDot,
 } from '@/domain/services/training'
-import { kg } from '@/lib/format'
+import { useUnits } from '@/lib/units'
+import { paths } from '@/router/paths'
+import { Muscle } from '@/domain/types'
 
 const router = useRouter()
 const workout = useWorkoutStore()
@@ -25,16 +29,15 @@ const lib = useLibraryStore()
 const ui = useUiStore()
 const { history, session } = storeToRefs(workout)
 const { plans: planList } = storeToRefs(plans)
+const { w, unit } = useUnits()
 
 const showFuture = true
 
 const now = new Date()
 const dateLabel =
-  ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()] +
+  now.toLocaleDateString(undefined, { weekday: 'long' }) +
   ' · ' +
-  ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][now.getMonth()] +
-  ' ' +
-  now.getDate()
+  now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 const greeting = now.getHours() < 12 ? 'Ready to train.' : now.getHours() < 18 ? 'Afternoon session?' : 'Evening grind.'
 
 const ov = computed(() => overview(history.value))
@@ -73,25 +76,44 @@ const today = computed(() => {
 
 const recentPRs = computed(() =>
   prs.value.slice(0, 3).map((p) => {
-    const fingers = (lib.exOf(p.exId).groups || []).includes('fingers')
+    const fingers = (lib.exOf(p.exId).groups || []).includes(Muscle.Fingers)
     return {
       name: p.name,
-      detail: fingers ? 'New best on ' + lib.exOf(p.exId).equip : kg(p.weight) + ' kg × ' + p.reps,
-      delta: p.delta == null ? 'PR' : '+' + kg(p.delta),
+      detail: fingers ? 'New best on ' + lib.exOf(p.exId).equip : w(p.weight) + ' ' + unit.value + ' × ' + p.reps,
+      delta: p.delta == null ? 'PR' : '+' + w(p.delta),
       icon: fingers ? '🧗' : '↑',
     }
   }),
 )
 
+/** Most recent session's plan day, when it still exists and isn't already today's suggestion. */
+const repeat = computed(() => {
+  if (session.value) return null
+  const r = lastSessionDay(history.value, planList.value)
+  if (!r || (sug.value?.day && r.day.id === sug.value.day.id)) return null
+  return r
+})
+
+async function startRepeat() {
+  const r = repeat.value
+  if (r && (await workout.startDay(r.plan.id, r.day.id))) router.push(paths.workout)
+}
+
+/** One session that day → open it; several → the calendar (its day sheet lists them). */
+function openStripDay(d: WeekDot) {
+  if (d.sessionIds.length === 1) router.push(paths.session(d.sessionIds[0]))
+  else if (d.sessionIds.length > 1) router.push(paths.calendar)
+}
+
 async function startToday() {
-  if (session.value) return router.push('/workout')
+  if (session.value) return router.push(paths.workout)
   const g = sug.value
   if (!g) {
     ui.toast('Create a plan first')
-    return router.push('/plans')
+    return router.push(paths.plans)
   }
-  if (!g.day || !g.day.entries.length) return router.push('/start')
-  if (await workout.startDay(g.plan.id, g.day.id)) router.push('/workout')
+  if (!g.day || !g.day.entries.length) return router.push(paths.start)
+  if (await workout.startDay(g.plan.id, g.day.id)) router.push(paths.workout)
 }
 </script>
 
@@ -113,6 +135,23 @@ async function startToday() {
       </div>
     </div>
 
+    <!-- Repeat last workout -->
+    <button
+      v-if="repeat"
+      type="button"
+      class="mt-[10px] flex w-full cursor-pointer items-center gap-3 rounded-[15px] border border-line bg-surface px-[14px] py-[11px] text-left text-ink shadow-card"
+      @click="startRepeat"
+    >
+      <div class="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[10px] bg-surface-2 text-accent">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5" /><path d="M3.5 9a9 9 0 1 0 2-3.5L3 8" /></svg>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="truncate text-[13.5px] font-bold">Repeat last: {{ repeat.day.label }}</div>
+        <div class="text-[11.5px] text-ink-3">{{ repeat.plan.name }} · {{ repeat.when }}</div>
+      </div>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="shrink-0 text-ink-3"><path d="M7 5.5v13c0 .9 1 1.4 1.7 .9l10-6.5c.7-.4 .7-1.4 0-1.8l-10-6.5C8 4.1 7 4.6 7 5.5Z" /></svg>
+    </button>
+
     <!-- Stats -->
     <div class="mt-[13px] grid grid-cols-3 gap-[10px]">
       <StatCard :value="streakN" label="day streak" />
@@ -127,7 +166,7 @@ async function startToday() {
         <button
           type="button"
           class="flex cursor-pointer items-center gap-1 border-none bg-transparent text-[12px] font-bold text-accent"
-          @click="router.push('/calendar')"
+          @click="router.push(paths.calendar)"
         >
           Calendar
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
@@ -139,8 +178,8 @@ async function startToday() {
           :key="i"
           type="button"
           class="flex-1 border-none bg-transparent p-0 text-center"
-          :class="d.sessionId ? 'cursor-pointer' : 'cursor-default'"
-          @click="d.sessionId && router.push('/session/' + d.sessionId)"
+          :class="d.sessionIds.length ? 'cursor-pointer' : 'cursor-default'"
+          @click="openStripDay(d)"
         >
           <div
             class="rounded-[8px]"
@@ -155,7 +194,7 @@ async function startToday() {
     <!-- Recent PRs -->
     <div class="mt-4 flex items-center justify-between px-[2px] pb-[2px]">
       <span class="text-[13px] font-bold tracking-[0.02em]">Recent personal records</span>
-      <button type="button" class="cursor-pointer border-none bg-transparent text-[12px] font-bold text-accent" @click="router.push('/progress')">
+      <button type="button" class="cursor-pointer border-none bg-transparent text-[12px] font-bold text-accent" @click="router.push(paths.progress)">
         See all
       </button>
     </div>
@@ -184,7 +223,7 @@ async function startToday() {
       v-if="showFuture"
       type="button"
       class="mt-[14px] flex w-full cursor-pointer items-center gap-[13px] rounded-[18px] border-[1.5px] border-dashed border-line-2 bg-surface px-[16px] py-[15px] text-left text-ink"
-      @click="router.push('/coach')"
+      @click="router.push(paths.coach)"
     >
       <div class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[11px] bg-surface-2">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></svg>

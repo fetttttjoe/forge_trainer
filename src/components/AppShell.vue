@@ -5,6 +5,8 @@ import Icon from '@/components/ui/Icon.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useWorkoutStore } from '@/stores/workout'
+import { RouteName, paths } from '@/router/paths'
+import { Theme } from '@/domain/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,14 +15,14 @@ const { theme } = storeToRefs(settings)
 const workout = useWorkoutStore()
 
 const TABS = [
-  { name: 'home', label: 'Home', icon: 'home' },
-  { name: 'plans', label: 'Plans', icon: 'list' },
-  { name: 'library', label: 'Library', icon: 'grid' },
-  { name: 'progress', label: 'Progress', icon: 'chart' },
+  { name: RouteName.Home, label: 'Home', icon: 'home' },
+  { name: RouteName.Plans, label: 'Plans', icon: 'list' },
+  { name: RouteName.Library, label: 'Library', icon: 'grid' },
+  { name: RouteName.Progress, label: 'Progress', icon: 'chart' },
 ] as const
 
 function fab() {
-  router.push(workout.session ? '/workout' : '/start')
+  router.push(workout.session ? paths.workout : paths.start)
 }
 </script>
 
@@ -45,8 +47,8 @@ function fab() {
             <span class="h-[7px] w-[7px] rounded-full bg-good shadow-[0_0_0_3px_color-mix(in_srgb,var(--good)_20%,transparent)]" />
             Offline
           </div>
-          <IconButton :icon="theme === 'dark' ? 'sun' : 'moon'" @click="settings.toggleTheme()" />
-          <IconButton icon="settings" @click="router.push('/settings')" />
+          <IconButton :icon="theme === Theme.Dark ? 'sun' : 'moon'" @click="settings.toggleTheme()" />
+          <IconButton icon="settings" @click="router.push(paths.settings)" />
         </div>
       </div>
 

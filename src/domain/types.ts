@@ -1,22 +1,35 @@
 // Domain model — plain data, no framework, no storage, no DOM.
 // Mirrors the Forge design's data shapes so the UI and prototype stay in lockstep.
 
-export type MuscleGroup =
-  | 'back'
-  | 'chest'
-  | 'shoulders'
-  | 'legs'
-  | 'arms'
-  | 'core'
-  | 'fingers'
+// Enum-style constants: `as const` objects with derived union types (real `enum` is barred by
+// erasableSyntaxOnly). One place owns each value; logic refers to members, never bare strings.
+// The values themselves are stable — they are what's persisted in IndexedDB and backups.
+
+export const Muscle = {
+  Back: 'back',
+  Chest: 'chest',
+  Shoulders: 'shoulders',
+  Legs: 'legs',
+  Arms: 'arms',
+  Core: 'core',
+  Fingers: 'fingers',
+} as const
+export type MuscleGroup = (typeof Muscle)[keyof typeof Muscle]
 
 /** How an exercise is tracked / logged. */
-export type TrackType = 'weight' | 'interval' | 'distance'
+export const Track = { Weight: 'weight', Interval: 'interval' } as const
+export type TrackType = (typeof Track)[keyof typeof Track]
 
 /** "How did it feel" rating key. */
-export type FeltKey = 'easy' | 'solid' | 'grindy' | 'failed'
+export const Felt = { Easy: 'easy', Solid: 'solid', Grindy: 'grindy', Failed: 'failed' } as const
+export type FeltKey = (typeof Felt)[keyof typeof Felt]
 
-export type Theme = 'light' | 'dark'
+export const Theme = { Light: 'light', Dark: 'dark' } as const
+export type Theme = (typeof Theme)[keyof typeof Theme]
+
+/** Display unit for weights. Storage is always kg; only presentation converts. */
+export const Unit = { Kg: 'kg', Lb: 'lb' } as const
+export type Unit = (typeof Unit)[keyof typeof Unit]
 
 export interface Exercise {
   id: string
@@ -135,6 +148,9 @@ export interface HistorySession {
   id: string
   planName: string
   dayLabel: string
+  // Plan/day ids for "repeat this workout" (absent on records logged before this existed).
+  planId?: string
+  dayId?: string
   /** ISO timestamp. */
   date: string
   durationMin: number
@@ -150,6 +166,8 @@ export interface Prefs {
   sound: boolean
   /** Default rest, seconds, applied to newly added exercises. */
   defaultRest: number
+  /** Weight display unit (weights are stored in kg regardless). */
+  unit: Unit
 }
 
 /** Everything that can be exported / imported as a backup. */
@@ -182,7 +200,7 @@ export const BLANK_FORM: ExerciseForm = {
   muscle: '',
   equip: '',
   instr: '',
-  track: 'weight',
+  track: Track.Weight,
   sets: 3,
   reps: 10,
   rest: 90,
@@ -191,23 +209,26 @@ export const BLANK_FORM: ExerciseForm = {
   rounds: 6,
 }
 
-export const DEFAULT_PREFS: Prefs = { sound: true, defaultRest: 90 }
+export const DEFAULT_PREFS: Prefs = { sound: true, defaultRest: 90, unit: Unit.Kg }
 
 /** Ordered muscle groups with display labels (drives balance chart + tags). */
 export const GROUPS: [MuscleGroup, string][] = [
-  ['back', 'Back'],
-  ['chest', 'Chest'],
-  ['shoulders', 'Shoulders'],
-  ['legs', 'Legs'],
-  ['arms', 'Arms'],
-  ['core', 'Core'],
-  ['fingers', 'Fingers'],
+  [Muscle.Back, 'Back'],
+  [Muscle.Chest, 'Chest'],
+  [Muscle.Shoulders, 'Shoulders'],
+  [Muscle.Legs, 'Legs'],
+  [Muscle.Arms, 'Arms'],
+  [Muscle.Core, 'Core'],
+  [Muscle.Fingers, 'Fingers'],
 ]
 
-/** Felt-rating label + color token, keyed by FeltKey. */
+/** Felt-rating label + color token — the single source for felt display (picker, legend, chips). */
 export const FELT: Record<FeltKey, [string, string]> = {
-  easy: ['Easy', '#17936B'],
-  solid: ['Solid', 'var(--accent)'],
-  grindy: ['Grindy', '#C9721F'],
-  failed: ['Failed', '#C0392B'],
+  [Felt.Easy]: ['Easy', '#17936B'],
+  [Felt.Solid]: ['Solid', 'var(--accent)'],
+  [Felt.Grindy]: ['Grindy', '#C9721F'],
+  [Felt.Failed]: ['Failed', '#C0392B'],
 }
+
+/** FELT's keys in display order, typed. */
+export const FELT_KEYS = Object.keys(FELT) as FeltKey[]

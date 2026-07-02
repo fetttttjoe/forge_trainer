@@ -1,20 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { container } from '@/app/container'
-import { DEFAULT_PREFS, type Prefs, type Theme } from '@/domain/types'
+import { DEFAULT_PREFS, Theme, type Prefs } from '@/domain/types'
 
 export const useSettingsStore = defineStore('settings', () => {
-  const theme = ref<Theme>('light')
+  const theme = ref<Theme>(Theme.Light)
   const prefs = ref<Prefs>({ ...DEFAULT_PREFS })
 
   function applyTheme() {
-    if (theme.value === 'dark') document.documentElement.setAttribute('data-theme', 'dark')
+    if (theme.value === Theme.Dark) document.documentElement.setAttribute('data-theme', Theme.Dark)
     else document.documentElement.removeAttribute('data-theme')
   }
 
   async function load() {
-    theme.value = (await container.settings.getTheme()) ?? 'light'
-    prefs.value = (await container.settings.getPrefs()) ?? { ...DEFAULT_PREFS }
+    theme.value = (await container.settings.getTheme()) ?? Theme.Light
+    // Merge over defaults so prefs added in updates (e.g. unit) exist on older installs.
+    prefs.value = { ...DEFAULT_PREFS, ...(await container.settings.getPrefs()) }
     applyTheme()
   }
 
@@ -25,7 +26,7 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   function toggleTheme() {
-    return setTheme(theme.value === 'dark' ? 'light' : 'dark')
+    return setTheme(theme.value === Theme.Dark ? Theme.Light : Theme.Dark)
   }
 
   async function setPref<K extends keyof Prefs>(key: K, value: Prefs[K]) {

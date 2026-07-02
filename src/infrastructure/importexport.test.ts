@@ -7,7 +7,7 @@ const t = new JsonDataTransfer()
 const snap = (over: Partial<Snapshot> = {}): Snapshot => ({
   version: 1,
   theme: 'light',
-  prefs: { sound: true, defaultRest: 90 },
+  prefs: { sound: true, defaultRest: 90, unit: 'kg' },
   customExercises: [],
   plans: [],
   history: [],

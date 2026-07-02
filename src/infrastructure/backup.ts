@@ -2,10 +2,10 @@
 // repositories cover normal CRUD; backup/restore/seed are a distinct concern that legitimately
 // touches every table at once, so they live here rather than being forced through the ports.
 
-import type { Prefs, Snapshot, Theme } from '@/domain/types'
-import { DEFAULT_PREFS } from '@/domain/types'
+import type { Prefs, Snapshot } from '@/domain/types'
+import { DEFAULT_PREFS, Theme } from '@/domain/types'
 import { seedHistory, seedPlans } from './dataset'
-import { db, metaGet, metaSet } from './db'
+import { META, db, metaGet, metaSet } from './db'
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v))
 
@@ -17,8 +17,8 @@ export async function readSnapshot(): Promise<Snapshot> {
   ])
   return {
     version: 1,
-    theme: (await metaGet<Theme>('theme')) ?? 'light',
-    prefs: (await metaGet<Prefs>('prefs')) ?? DEFAULT_PREFS,
+    theme: (await metaGet<Theme>(META.Theme)) ?? Theme.Light,
+    prefs: (await metaGet<Prefs>(META.Prefs)) ?? DEFAULT_PREFS,
     customExercises,
     plans,
     history,
@@ -32,24 +32,24 @@ export async function writeSnapshot(s: Snapshot): Promise<void> {
     await db.exercises.bulkPut(clone(s.customExercises))
     await db.plans.bulkPut(clone(s.plans))
     await db.history.bulkPut(clone(s.history))
-    await metaSet('theme', s.theme)
-    await metaSet('prefs', clone(s.prefs))
+    await metaSet(META.Theme, s.theme)
+    await metaSet(META.Prefs, clone(s.prefs))
   })
 }
 
 export async function isSeeded(): Promise<boolean> {
-  return (await metaGet<boolean>('seeded')) === true
+  return (await metaGet<boolean>(META.Seeded)) === true
 }
 
 /** Load demo plans + history (keeping the current theme). Marks the DB seeded. */
 export async function seedDatabase(now = Date.now()): Promise<void> {
   await writeSnapshot({
     version: 1,
-    theme: (await metaGet<Theme>('theme')) ?? 'light',
+    theme: (await metaGet<Theme>(META.Theme)) ?? Theme.Light,
     prefs: DEFAULT_PREFS,
     customExercises: [],
     plans: seedPlans(),
     history: seedHistory(now),
   })
-  await metaSet('seeded', true)
+  await metaSet(META.Seeded, true)
 }

@@ -7,6 +7,7 @@ import ScreenHeader from '@/components/ScreenHeader.vue'
 import PillButton from '@/components/ui/PillButton.vue'
 import { useWorkoutStore } from '@/stores/workout'
 import { usePlansStore } from '@/stores/plans'
+import { paths } from '@/router/paths'
 
 const router = useRouter()
 const workout = useWorkoutStore()
@@ -33,7 +34,7 @@ const cards = computed(() =>
 )
 
 async function start(planId: string, dayId: string) {
-  if (await workout.startDay(planId, dayId)) router.push('/workout')
+  if (await workout.startDay(planId, dayId)) router.push(paths.workout)
 }
 </script>
 
@@ -46,7 +47,7 @@ async function start(planId: string, dayId: string) {
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
       <div v-if="session" class="mb-[18px]">
         <div class="mb-2 text-[11px] font-bold uppercase tracking-[0.04em] text-ink-3">In progress</div>
-        <PillButton :label="`Resume ${session.dayLabel}`" variant="primary" icon="play" @click="router.push('/workout')" />
+        <PillButton :label="`Resume ${session.dayLabel}`" variant="primary" icon="play" @click="router.push(paths.workout)" />
       </div>
 
       <div class="mb-[10px] text-[11px] font-bold uppercase tracking-[0.04em] text-ink-3">Pick any day</div>

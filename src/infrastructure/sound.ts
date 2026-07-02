@@ -20,3 +20,12 @@ export function beep(): void {
     /* audio not available — silent */
   }
 }
+
+/** Short haptic tap via the Vibration API (Android webview; no-op where unsupported, e.g. iOS). */
+export function buzz(ms = 40): void {
+  try {
+    navigator.vibrate?.(ms)
+  } catch {
+    /* unsupported — silent */
+  }
+}

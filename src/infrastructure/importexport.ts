@@ -2,8 +2,8 @@
 // Merge policy (design spec §12, chosen default): merge-by-id, imported wins.
 
 import type { DataTransfer } from '@/domain/ports'
-import type { Exercise, HistorySession, Plan, Snapshot, Theme } from '@/domain/types'
-import { DEFAULT_PREFS } from '@/domain/types'
+import type { Exercise, HistorySession, Plan, Snapshot } from '@/domain/types'
+import { DEFAULT_PREFS, Theme, Unit } from '@/domain/types'
 
 class ImportError extends Error {}
 
@@ -37,11 +37,12 @@ export class JsonDataTransfer implements DataTransfer {
     if (!root || typeof root !== 'object') throw new ImportError('Backup must be a JSON object')
     const r = root as Record<string, unknown>
 
-    const theme: Theme = r.theme === 'dark' ? 'dark' : 'light'
+    const theme: Theme = r.theme === Theme.Dark ? Theme.Dark : Theme.Light
     const p = (r.prefs as Record<string, unknown>) || {}
     const prefs = {
       sound: typeof p.sound === 'boolean' ? p.sound : DEFAULT_PREFS.sound,
       defaultRest: typeof p.defaultRest === 'number' ? p.defaultRest : DEFAULT_PREFS.defaultRest,
+      unit: p.unit === Unit.Lb ? Unit.Lb : Unit.Kg,
     }
 
     return {

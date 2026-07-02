@@ -9,6 +9,7 @@ import SearchField from '@/components/ui/SearchField.vue'
 import { usePlansStore } from '@/stores/plans'
 import { useLibraryStore } from '@/stores/library'
 import { useUiStore } from '@/stores/ui'
+import { paths } from '@/router/paths'
 
 const props = defineProps<{ id: string; dayId: string }>()
 const router = useRouter()
@@ -26,14 +27,14 @@ const list = computed(() => {
 async function add(exId: string, name: string) {
   await plans.addEntry(props.id, props.dayId, exId)
   ui.toast(name + ' added')
-  router.push('/plan/' + props.id)
+  router.push(paths.plan(props.id))
 }
 </script>
 
 <template>
   <div class="flex h-[100dvh] flex-col bg-bg text-ink">
     <ScreenHeader :title="'Add to ' + dayLabel">
-      <template #left><IconButton icon="back" @click="router.push('/plan/' + id)" /></template>
+      <template #left><IconButton icon="back" @click="router.push(paths.plan(id))" /></template>
     </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
@@ -42,7 +43,7 @@ async function add(exId: string, name: string) {
           label="Create a new exercise"
           variant="soft"
           icon="plus"
-          @click="router.push({ path: '/create', query: { planId: id, dayId } })"
+          @click="router.push({ path: paths.create, query: { planId: id, dayId } })"
         />
       </div>
       <div class="mb-3">

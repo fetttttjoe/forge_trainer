@@ -11,7 +11,10 @@ import { usePlansStore } from '@/stores/plans'
 import { useLibraryStore } from '@/stores/library'
 import { useWorkoutStore } from '@/stores/workout'
 import { e1rm, lastSessionFor, relTime } from '@/domain/services/training'
-import { fmtTime, kg } from '@/lib/format'
+import { fmtTime } from '@/lib/format'
+import { useTapConfirm } from '@/lib/confirm'
+import { useUnits } from '@/lib/units'
+import { paths } from '@/router/paths'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -19,8 +22,9 @@ const plans = usePlansStore()
 const lib = useLibraryStore()
 const workout = useWorkoutStore()
 
+const { w, unit } = useUnits()
 const plan = computed(() => plans.byId(props.id))
-watch(plan, (p) => !p && router.replace('/plans'), { immediate: true })
+watch(plan, (p) => !p && router.replace(paths.plans), { immediate: true })
 
 const dayIdx = ref(0)
 const expanded = ref<string | null>(null)
@@ -35,7 +39,7 @@ const entries = computed(() =>
       const top = prev.sets.reduce((m, p) => (e1rm(p) > e1rm(m) ? p : m), prev.sets[0])
       lastLogged =
         'Last logged: ' +
-        (top.weight > 0 ? kg(top.weight) + 'kg × ' + top.reps : top.reps + ' reps') +
+        (top.weight > 0 ? w(top.weight) + unit.value + ' × ' + top.reps : top.reps + ' reps') +
         ' · ' +
         relTime(prev.date)
     }
@@ -64,25 +68,25 @@ function selectDay(i: number) {
   dayIdx.value = i
   expanded.value = null
 }
-async function del() {
+const { armed: delArmed, tap: delTap } = useTapConfirm(async () => {
   await plans.remove(props.id)
-  router.push('/plans')
-}
+  router.push(paths.plans)
+})
 async function start() {
-  if (curDay.value && (await workout.startDay(props.id, curDay.value.id))) router.push('/workout')
+  if (curDay.value && (await workout.startDay(props.id, curDay.value.id))) router.push(paths.workout)
 }
 </script>
 
 <template>
   <div v-if="plan && curDay" class="flex h-[100dvh] flex-col bg-bg text-ink">
     <ScreenHeader>
-      <template #left><IconButton icon="back" @click="router.push('/plans')" /></template>
+      <template #left><IconButton icon="back" @click="router.push(paths.plans)" /></template>
       <input
         :value="plan.name"
         class="w-full border-none bg-transparent text-center text-[15px] font-extrabold text-ink outline-none"
         @input="plans.rename(props.id, ($event.target as HTMLInputElement).value)"
       />
-      <template #right><TextButton label="Done" variant="dark" @click="router.push('/plans')" /></template>
+      <template #right><TextButton label="Done" variant="dark" @click="router.push(paths.plans)" /></template>
     </ScreenHeader>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-6 pt-[6px]">
@@ -167,14 +171,30 @@ async function start() {
                 <Stepper label="Rest s" :value="e.rest" @inc="plans.bumpEntry(props.id, curDay.id, e.id, 'rest', 15, 0)" @dec="plans.bumpEntry(props.id, curDay.id, e.id, 'rest', -15, 0)" />
               </div>
             </div>
-            <button
-              type="button"
-              class="mt-[10px] flex w-full cursor-pointer items-center justify-center gap-[7px] rounded-[11px] border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] p-[10px] text-[13px] font-bold text-accent"
-              @click="plans.removeEntry(props.id, curDay.id, e.id)"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
-              Remove from day
-            </button>
+            <div class="mt-[10px] flex gap-[6px]">
+              <button
+                type="button"
+                class="flex w-[44px] cursor-pointer items-center justify-center rounded-[11px] border border-line bg-surface p-[10px] text-ink-2"
+                @click="plans.moveEntry(props.id, curDay.id, e.id, -1)"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6" /></svg>
+              </button>
+              <button
+                type="button"
+                class="flex w-[44px] cursor-pointer items-center justify-center rounded-[11px] border border-line bg-surface p-[10px] text-ink-2"
+                @click="plans.moveEntry(props.id, curDay.id, e.id, 1)"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+              </button>
+              <button
+                type="button"
+                class="flex flex-1 cursor-pointer items-center justify-center gap-[7px] rounded-[11px] border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] p-[10px] text-[13px] font-bold text-accent"
+                @click="plans.removeEntry(props.id, curDay.id, e.id)"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
+                Remove from day
+              </button>
+            </div>
           </div>
         </div>
         <div v-if="!entries.length" class="rounded-[15px] border border-dashed border-line-2 bg-surface px-6 py-6 text-center text-[13px] text-ink-3">
@@ -183,12 +203,17 @@ async function start() {
       </div>
 
       <div class="mt-3">
-        <PillButton label="Add exercise to this day" variant="primary" icon="plus" @click="router.push(`/plan/${props.id}/day/${curDay.id}/pick`)" />
+        <PillButton label="Add exercise to this day" variant="primary" icon="plus" @click="router.push(paths.pick(props.id, curDay.id))" />
       </div>
       <div class="mt-[18px] text-center text-[11px] text-ink-3">Changes save automatically to this device</div>
-      <button type="button" class="mt-[6px] flex w-full cursor-pointer items-center justify-center gap-[6px] border-none bg-transparent p-2 text-[13px] font-semibold text-ink-3" @click="del">
+      <button
+        type="button"
+        class="mt-[6px] flex w-full cursor-pointer items-center justify-center gap-[6px] border-none bg-transparent p-2 text-[13px] font-semibold"
+        :class="delArmed ? 'text-accent' : 'text-ink-3'"
+        @click="delTap"
+      >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
-        Delete plan
+        {{ delArmed ? 'Tap again to delete' : 'Delete plan' }}
       </button>
     </div>
 

@@ -103,6 +103,18 @@ export const usePlansStore = defineStore('plans', () => {
     await persist(p)
   }
 
+  /** Swap an entry with its neighbor (delta ±1). */
+  async function moveEntry(id: string, dayId: string, entryId: string, delta: -1 | 1) {
+    const p = byId(id)
+    const d = dayOf(p, dayId)
+    if (!d) return
+    const i = d.entries.findIndex((x) => x.id === entryId)
+    const j = i + delta
+    if (i < 0 || j < 0 || j >= d.entries.length) return
+    ;[d.entries[i], d.entries[j]] = [d.entries[j], d.entries[i]]
+    await persist(p)
+  }
+
   async function removeEntry(id: string, dayId: string, entryId: string) {
     const p = byId(id)
     const d = dayOf(p, dayId)
@@ -123,6 +135,7 @@ export const usePlansStore = defineStore('plans', () => {
     toggleWeekday,
     addEntry,
     bumpEntry,
+    moveEntry,
     removeEntry,
   }
 })

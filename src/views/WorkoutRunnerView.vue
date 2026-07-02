@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import IconButton from '@/components/ui/IconButton.vue'
@@ -7,16 +7,34 @@ import ScreenHeader from '@/components/ScreenHeader.vue'
 import PillButton from '@/components/ui/PillButton.vue'
 import SetRow from '@/components/ui/SetRow.vue'
 import { useWorkoutStore } from '@/stores/workout'
-import { ringOffset } from '@/domain/services/timer'
+import { IntervalPhase, TimerMode, ringOffset } from '@/domain/services/timer'
 import { relTime } from '@/domain/services/training'
-import { fmtTime, kg } from '@/lib/format'
+import { acquireWakeLock, releaseWakeLock } from '@/infrastructure/wakelock'
+import { fmtTime } from '@/lib/format'
+import { useUnits } from '@/lib/units'
+import { paths } from '@/router/paths'
+import type { SessionEntry } from '@/domain/types'
 
 const router = useRouter()
 const workout = useWorkoutStore()
 const { session, timer, curEntry, isLast } = storeToRefs(workout)
+const { w, unit, step } = useUnits()
+
+const allDone = (e: SessionEntry) => e.sets.length > 0 && e.sets.every((x) => x.done)
 
 // No active session → nothing to run.
-watch(session, (s) => !s && router.replace('/'), { immediate: true })
+watch(session, (s) => !s && router.replace(paths.home), { immediate: true })
+
+// Keep the screen on while training; the OS drops the lock when hidden, so re-acquire on return.
+const onVisible = () => document.visibilityState === 'visible' && acquireWakeLock()
+onMounted(() => {
+  acquireWakeLock()
+  document.addEventListener('visibilitychange', onVisible)
+})
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onVisible)
+  releaseWakeLock()
+})
 
 const cur = curEntry
 const isInterval = computed(() => !!cur.value?.interval)
@@ -37,19 +55,19 @@ const sets = computed(() => {
     const p = psets.value[i] || psets.value[psets.value.length - 1]
     return {
       num: i + 1,
-      weight: kg(x.weight || 0),
+      weight: w(x.weight || 0),
       reps: x.reps ?? '',
       done: !!x.done,
-      prevW: p ? 'last ' + (p.weight > 0 ? kg(p.weight) : 'BW') : '',
+      prevW: p ? 'last ' + (p.weight > 0 ? w(p.weight) : 'BW') : '',
       prevR: p ? 'last ' + p.reps : '',
     }
   })
 })
 
 const prevBestBig = computed(() => {
-  const w = psets.value.reduce((m, p) => Math.max(m, p.weight || 0), 0)
-  const r = psets.value.reduce((m, p) => Math.max(m, p.reps || 0), 0)
-  return w > 0 ? kg(w) + ' kg' : r > 0 ? r + ' reps' : psets.value.length + ' sets'
+  const topW = psets.value.reduce((m, p) => Math.max(m, p.weight || 0), 0)
+  const topR = psets.value.reduce((m, p) => Math.max(m, p.reps || 0), 0)
+  return topW > 0 ? w(topW) + ' ' + unit.value : topR > 0 ? topR + ' reps' : psets.value.length + ' sets'
 })
 
 const improveLabel = computed(() => {
@@ -64,27 +82,47 @@ const improveLabel = computed(() => {
     h.entries.find((x) => x.exId === c.exId)!.sets.filter((x) => x.done).reduce((m, x) => Math.max(m, x.weight || 0), 0)
   const f = topW(eh[0])
   const l = topW(eh[eh.length - 1])
-  if (f > 0 && l > 0 && l !== f) return (l > f ? '▲ +' : '▼ −') + kg(Math.abs(l - f)) + ' kg since you started'
+  if (f > 0 && l > 0 && l !== f) return (l > f ? '▲ +' : '▼ −') + w(Math.abs(l - f)) + ' ' + unit.value + ' since you started'
   return ''
 })
 
 const timeText = computed(() => fmtTime(timer.value.timeLeft))
-const phaseLabel = computed(() => (isInterval.value ? (timer.value.phase === 'work' ? 'HANG' : 'REST') : 'REST'))
-const hasTimer = computed(() => timer.value.timeLeft > 0 || (timer.value.mode === 'rest' && timer.value.timerOn))
+const phaseLabel = computed(() => (isInterval.value && timer.value.phase === IntervalPhase.Work ? 'HANG' : 'REST'))
+const hasTimer = computed(() => timer.value.timeLeft > 0 || (timer.value.mode === TimerMode.Rest && timer.value.timerOn))
 
 async function finish() {
   workout.finishWorkout()
-  router.push('/rate')
+  router.push(paths.rate)
 }
 </script>
 
 <template>
   <div v-if="cur" class="flex h-[100dvh] flex-col bg-bg text-ink">
     <ScreenHeader>
-      <template #left><IconButton icon="close" @click="router.push('/')" /></template>
+      <template #left><IconButton icon="close" @click="router.push(paths.home)" /></template>
       <div class="text-[11px] font-bold uppercase tracking-[0.05em] text-ink-3">{{ session!.dayLabel }}</div>
       <div class="mt-px text-[13px] font-bold">Exercise {{ session!.exIndex + 1 }} / {{ session!.entries.length }}</div>
     </ScreenHeader>
+
+    <!-- Jump strip: tap any exercise; filled = current, ring = done -->
+    <div class="flex shrink-0 gap-[7px] overflow-x-auto px-[18px] pb-[8px] pt-[2px]">
+      <button
+        v-for="(e, i) in session!.entries"
+        :key="i"
+        type="button"
+        class="h-[32px] min-w-[32px] shrink-0 cursor-pointer rounded-full border-[1.5px] px-1 text-[12.5px] font-bold"
+        :class="
+          i === session!.exIndex
+            ? 'border-accent bg-accent text-white'
+            : allDone(e)
+              ? 'border-good bg-transparent text-good'
+              : 'border-line-2 bg-transparent text-ink-3'
+        "
+        @click="workout.goToEx(i)"
+      >
+        {{ i + 1 }}
+      </button>
+    </div>
 
     <div class="flex-1 overflow-y-auto px-[18px] pb-5 pt-[6px]">
       <div class="text-[26px] font-extrabold tracking-[-0.025em]">{{ cur.name }}</div>
@@ -151,7 +189,7 @@ async function finish() {
         </div>
 
         <div class="mt-4 grid grid-cols-[34px_minmax(0,1fr)_minmax(0,1fr)_46px] gap-2 px-[11px] pb-[6px] text-[11px] font-bold uppercase tracking-[0.04em] text-ink-3">
-          <span class="text-center">Set</span><span class="text-center">Weight</span><span class="text-center">Reps</span><span />
+          <span class="text-center">Set</span><span class="text-center">Weight · {{ unit }}</span><span class="text-center">Reps</span><span />
         </div>
         <div class="flex flex-col gap-[9px]">
           <SetRow
@@ -164,8 +202,8 @@ async function finish() {
             :prev-r="st.prevR"
             :done="st.done"
             @toggle="workout.toggleSet(st.num - 1)"
-            @inc-w="workout.bumpSet(st.num - 1, 'weight', 2.5)"
-            @dec-w="workout.bumpSet(st.num - 1, 'weight', -2.5)"
+            @inc-w="workout.bumpSet(st.num - 1, 'weight', step)"
+            @dec-w="workout.bumpSet(st.num - 1, 'weight', -step)"
             @inc-r="workout.bumpSet(st.num - 1, 'reps', 1)"
             @dec-r="workout.bumpSet(st.num - 1, 'reps', -1)"
           />

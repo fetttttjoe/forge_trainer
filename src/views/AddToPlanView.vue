@@ -7,6 +7,7 @@ import ScreenHeader from '@/components/ScreenHeader.vue'
 import { usePlansStore } from '@/stores/plans'
 import { useLibraryStore } from '@/stores/library'
 import { useUiStore } from '@/stores/ui'
+import { paths } from '@/router/paths'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -25,7 +26,7 @@ const rows = computed(() =>
 async function add(planId: string, dayId: string) {
   await plans.addEntry(planId, dayId, props.id)
   ui.toast(exName.value + ' added')
-  router.push('/exercise/' + props.id)
+  router.push(paths.exercise(props.id))
 }
 </script>
 

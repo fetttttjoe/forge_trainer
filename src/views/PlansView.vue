@@ -7,6 +7,7 @@ import { usePlansStore } from '@/stores/plans'
 import { useLibraryStore } from '@/stores/library'
 import { useWorkoutStore } from '@/stores/workout'
 import { GROUPS } from '@/domain/types'
+import { paths } from '@/router/paths'
 
 const router = useRouter()
 const plans = usePlansStore()
@@ -26,10 +27,10 @@ const cards = computed(() =>
 
 async function newPlan() {
   const p = await plans.create()
-  router.push('/plan/' + p.id)
+  router.push(paths.plan(p.id))
 }
 async function startDay(planId: string, dayId: string) {
-  if (await workout.startDay(planId, dayId)) router.push('/workout')
+  if (await workout.startDay(planId, dayId)) router.push(paths.workout)
 }
 </script>
 
@@ -42,7 +43,7 @@ async function startDay(planId: string, dayId: string) {
       :key="p.id"
       class="mb-[11px] rounded-[18px] border border-line bg-surface p-4 shadow-card"
     >
-      <button type="button" class="block w-full cursor-pointer border-none bg-transparent p-0 text-left text-ink" @click="router.push('/plan/' + p.id)">
+      <button type="button" class="block w-full cursor-pointer border-none bg-transparent p-0 text-left text-ink" @click="router.push(paths.plan(p.id))">
         <div class="flex items-start justify-between">
           <div>
             <div class="text-[17px] font-extrabold tracking-[-0.01em]">{{ p.name }}</div>
