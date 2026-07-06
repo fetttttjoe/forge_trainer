@@ -21,6 +21,7 @@
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
     "@capacitor/local-notifications": "^8.2.0",
+    "@capacitor/status-bar": "^8.0.2",
     "@capawesome/capacitor-android-edge-to-edge-support": "^8.0.8",
     "@fontsource-variable/hanken-grotesk": "^5.2.8",
     "@tailwindcss/vite": "^4.3.2",
